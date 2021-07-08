@@ -3,7 +3,7 @@ Here is a bunch of code that should turn into the final code
 
 The file called runfile.py is what will be run on the raspberry pi. It starts by initializing some variables and the serial connection and then acts like a state machine
 
-The accelerometer folder has two files. The imu.py is the class that has everything for working with the accelerometer. It has instance variables posX, posY, and anglez which will be updated through the imu's update methods when we are moving
+The accelerometer folder has two files. The imu.py is the class that has everything for working with the accelerometer. It has instance variables posX, posY, and anglez which will be updated through the imu's update methods when we are moving. The other one is just to test. 
 
 The file test.py has a few functions: the first is to take a picture pass it through openCV and pick out a green ball and return its distance and angle. The second and third are just for taking pictures
 
