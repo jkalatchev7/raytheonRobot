@@ -165,6 +165,26 @@ void irTranslate() {
       break;
     case 8:
       Serial.println("7");
+      analogValue = analogRead(A3);
+      myservo.write(0);
+      turnBot(true);
+      voltage = analogValue * (5.0 / 1024.0);
+      Serial.println(voltage);
+      while (voltage > 0.5) {
+        analogValue = analogRead(A3);
+        voltage = analogValue * (5.0 / 1024.0);
+        Serial.println(voltage);
+        
+      }
+      delay(200);
+      stopMotors();
+      delay(500);
+      forwardMotors(80);
+      delay(500);
+      myservo.write(90);
+      delay(500);
+      stopMotors();
+      
       break;
     case 28:
       Serial.println("8");

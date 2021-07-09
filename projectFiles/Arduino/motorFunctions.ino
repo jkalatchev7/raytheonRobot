@@ -92,3 +92,21 @@ void turnBot(int angle) {
     stopMotors();
   }
 }
+
+void turnBot(bool a) {
+  Serial.println("Turning motors");
+  analogWrite(enA, 150);
+  analogWrite(enB, 110);
+
+  if (a) {
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, HIGH);
+  } else {
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, HIGH);
+    digitalWrite(in3, HIGH);
+    digitalWrite(in4, LOW);
+  }
+}
