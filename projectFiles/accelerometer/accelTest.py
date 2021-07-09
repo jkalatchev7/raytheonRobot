@@ -13,7 +13,7 @@ hold.calibrate()
 #create a thread that runs that function so it can run simultaneously
 x = threading.Thread(target=hold.update, args=[0])
 x.start()
-time.sleep(3)
+time.sleep(5)
 #set variable that will end loop
 hold.stop = True
 print("sleep done")
@@ -31,9 +31,16 @@ ax2.plot(t, hold.vell, '.-')
 ax2.set_xlabel("Vel y")
 ax3.plot(t, hold.pos, '.-')
 fig.show()
-
+figure, (ax4, ax5) = plt.subplots(2, 1)
+fig.suptitle('A tale of 2 subplots')
+ax4.plot(t, hold.alpha, '.-')
+ax4.set_xlabel("Accel x")
+ax5.plot(t, hold.omega, '.-')
+ax5.set_xlabel("Vel y")
+figure.show()
 #print final positions which are stored in the object we've created
-print("Final Positions: " + str(hold.posX * 12) + ", " + str(hold.posY * 12))
+print("Final Positions: " + str(round(hold.posX * 12, 1)) + ", " + str(round(hold.posY * 12, 1)))
+print("Final Orientation: " + str(-1 * round(hold.angleZ,1)) + " degrees")
 # prev = time.time()
 # try:
 #     while (1):

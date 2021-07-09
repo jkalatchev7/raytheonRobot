@@ -27,8 +27,8 @@ class imu:
         self.angleZ = 0
         
         #offsets help us get rid of some of the sensor's noise
-        self.offsetX = .59
-        self.offsetZ = 0
+        self.offsetX = 6.9
+        self.offsetZ = 1.0
         
         #defines the bus that will be used to communicate with the accelerometer
         self.bus = SMBus(1)
@@ -41,6 +41,9 @@ class imu:
         self.pos = 0
         self.vell = 0
         self.acc = 0
+        self.theta = 0
+        self.omega = 0
+        self.alpha = 0
 
 
     #called once to set up the bus 
@@ -75,7 +78,7 @@ class imu:
         print("Calibrating...")
         arr = []
         offsets = [0.0, 0.0]
-        for i in range(1, 1000):
+        for i in range(1, 500):
             time.sleep(.002)
             ax, gz = self.read_dataA()
             arr.append([ax, gz])
@@ -106,60 +109,85 @@ class imu:
         acc = [0.0]
         vell = [0.0]
         pos = [0.0]
+        alpha = [0.0]
+        omega = [0.0]
+        theta = [0.0]
+        turning = False
         try:
             print("try")
             vel = 0
             angular = 0
             prev = time.time()
-            
-            
-            if (typ == 1):
-                sub = self.offsetZ
-            else:
-                sub = self.offsetX
             #runs until self.stop becomes True
             while (True):
                 holder = 0
+                holderB = 0
                 #averages 3 readings in a row to help filter noise
-                for i in range(1, 3):
+                for i in range(3):
                     time.sleep(.001)
                     if (typ == 0):
-                        temp = self.read_data(typ)
-                        temp = temp - sub
+                        temp = self.read_data(0)
+                        tempB = self.read_data(1)
+                        temp = temp - self.offsetX
+                        tempB = tempB - self.offsetZ
+                        tempB = tempB * -1
                         #reduces any measurement with a small magnitude down to 0
-                        if abs(temp) < .2:
-                            temp = 0
+                        
+                        
                         holder += temp
+                        holderB += tempB
                 holder = holder / 3
+                holderB = holderB / 3
+                
+                
+                if turning:
+                   if abs(holderB) < 1:
+                       turning = False
+                       holderB = 0
+                else:
+                    if abs(holderB) > 25:
+                        turning = True
+                        holder = 0
+                    
+
+                if abs(holderB) < 15:
+                    holderB = 0
+                if abs(holder) < 1.5:
+                    holder = 0
                 
                 #adds to array - only necessary for visualization
-                acc.append(holder)                       
+                acc.append(holder)
+                alpha.append(holderB)
                 next = time.time()
                 elapse = next - prev
                 #calculates velocity using past velocity, current acceleration and time elapsed
-                if (typ == 0):
-                    vel = vel + holder * elapse
-                    #squishes down to 0 if vel is sufficiently small
-                    if vel < .025:
-                        vel = 0
-                    vell.append(vel)
-                    #calculates position from velocity and past position
-                    deltaX = deltaX + vel * elapse
-                    pos.append(deltaX)
-                else:
-                    angular = angular + holder * elapse
-                    deltaTheta = deltaTheta + angular * elapse
+                
+                vel = vel + holder * elapse
+                #squishes down to 0 if vel is sufficiently small
+                if (vel < .01 and holder <= 0):
+                    vel = 0
+                vell.append(vel)
+                #calculates position from velocity and past position
+                deltaX = deltaX + vel * elapse
+                self.posX += vel * elapse * math.cos(self.angleZ * .0174533)
+                self.posY += vel * elapse * math.sin(self.angleZ * .0174533)
+                pos.append(deltaX)
+                
+                self.angleZ += holderB * elapse
+                angular = angular + holderB * elapse
+                omega.append(angular)
                 prev = next
                 #sets arrays so they can be plotted
                 if (self.stop):
                     self.pos = pos
                     self.acc = acc
                     self.vell = vell
+                    self.theta = theta
+                    self.omega = omega
+                    self.alpha =  alpha
                     break
         finally:
-            print("Final Run")
-            if (typ == 0):
-                self.posX = math.cos(self.angleZ * .0174533) * deltaX * 1.41
-                self.posY = math.sin(self.angleZ * .0174533) * deltaX * 1.41
-            else:
-                self.angleZ = self.angleZ + deltaTheta
+            print("done")
+#             self.posX = math.cos(self.angleZ * .0174533) * deltaX
+#             self.posY = math.sin(self.angleZ * .0174533) * deltaX
+#             self.angleZ = self.angleZ + angular

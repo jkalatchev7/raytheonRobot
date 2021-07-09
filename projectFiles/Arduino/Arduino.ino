@@ -13,7 +13,8 @@ Servo myservo;
 Servo holderServo;
 IRrecv receiver(irPin);
 decode_results results;
-
+int analogValue;
+float voltage;
 void setup() {
   initializeMotors();
   myservo.attach(3);
@@ -78,8 +79,8 @@ void serialTranslate() {
     turnBot(-100);
     Serial.println("done");
   } else if (action == "coll") {
-    int analogValue = analogRead(A3);
-    float voltage = analogValue * (5.0 / 1024.0);
+    analogValue = analogRead(A3);
+    voltage = analogValue * (5.0 / 1024.0);
     while (voltage > 0.5){
       forwardMotors(100);
     }
@@ -129,13 +130,29 @@ void irTranslate() {
     case 22:
       Serial.println("1");
       myservo.write(0);
+      turnBot(45);
       break;
     case 25:
       Serial.println("2");
       forwardMotors(255, 20);
       break;
     case 13:
+      analogValue = analogRead(A3);
       Serial.println("3");
+      myservo.write(0);
+      voltage = analogValue * (5.0 / 1024.0);
+      while (voltage > 0.5){
+        forwardMotors(100);
+        analogValue = analogRead(A3);
+        voltage = analogValue * (5.0 / 1024.0);
+        Serial.println(voltage);
+      }
+
+      forwardMotors(50);
+      delay(500);
+      myservo.write(90);
+      delay(500);
+      stopMotors();
       break;
     case 12:
       Serial.println("4");
