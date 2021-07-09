@@ -1,6 +1,4 @@
 import test
-import numpy
-import serialTestA as st
 import serial
 import io
 import time
