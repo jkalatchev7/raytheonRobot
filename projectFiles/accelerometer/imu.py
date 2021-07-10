@@ -39,7 +39,8 @@ class imu:
         # some temporary variables for troubleshootin
         self.velX = 0
         self.angularZ = 0
-        self.pos = 0
+        self.cordX = 0
+        self.cordY = 0
         self.vell = 0
         self.acc = 0
         self.theta = 0
@@ -108,7 +109,8 @@ class imu:
         self.stop = False
         acc = [0.0]
         vell = [0.0]
-        pos = [0.0]
+        posX = [0.0]
+        posY = [0.0]
         alpha = [0.0]
         omega = [0.0]
         theta = [0.0]
@@ -165,12 +167,14 @@ class imu:
                 deltaX = deltaX + vel * elapse
                 self.posX += vel * elapse * math.cos(self.angleZ * .0174533)
                 self.posY += vel * elapse * math.sin(self.angleZ * .0174533)
-                pos.append(deltaX)
+                posX.append(self.posX)
+                posY.append(self.posY)
                 omega.append(angular)
                 prev = nextT
             # sets arrays so they can be plotted
             if (self.stop):
-                self.pos = pos
+                self.cordX = posX
+                self.cordY = posY
                 self.acc = acc
                 self.vell = vell
                 self.theta = theta
