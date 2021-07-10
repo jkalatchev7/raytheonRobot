@@ -46,6 +46,7 @@ class imu:
         self.theta = 0
         self.omega = 0
         self.alpha = 0
+        self.dist = 0
 
     # called once to set up the bus
     def initialize(self):
@@ -113,6 +114,7 @@ class imu:
         posY = [0.0]
         alpha = [0.0]
         omega = [0.0]
+        dist = [0.0]
         theta = [0.0]
         turning = False
 
@@ -134,15 +136,19 @@ class imu:
                 if abs(holder) < 1:
                     holder = 0
 
-                alpha.append(holder)
+                
                 nextT = time.time()
                 elapse = nextT - prev
                 self.angleZ += holder * elapse
                 angular = angular + holder * elapse
+                alpha.append(holder)
                 omega.append(angular)
+                
                 acc.append(0.)
                 vell.append(0.)
-                pos.append(deltaX)
+                posX.append(self.posX)
+                posY.append(self.posY)
+                dist.append(deltaX)
                 prev = nextT
             else:
                 for i in range(3):
@@ -152,7 +158,7 @@ class imu:
                     temp = temp / 3
                     holder += temp
 
-                if abs(holder) < 1.5:
+                if abs(holder) < .35:
                     holder = 0
 
                 acc.append(holder)
@@ -161,7 +167,7 @@ class imu:
                 elapse = nextT - prev
                 vel = vel + holder * elapse
                 # squishes down to 0 if vel is sufficiently small
-                if vel < .01 and holder <= 0:
+                if vel < .2 and holder <= 0:
                     vel = 0
                 vell.append(vel)
                 deltaX = deltaX + vel * elapse
@@ -169,6 +175,7 @@ class imu:
                 self.posY += vel * elapse * math.sin(self.angleZ * .0174533)
                 posX.append(self.posX)
                 posY.append(self.posY)
+                dist.append(deltaX)
                 omega.append(angular)
                 prev = nextT
             # sets arrays so they can be plotted
@@ -180,4 +187,5 @@ class imu:
                 self.theta = theta
                 self.omega = omega
                 self.alpha = alpha
+                self.dist = dist
                 break
