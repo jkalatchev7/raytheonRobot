@@ -1,6 +1,8 @@
 import tkinTest
+import imu
 
+accel = imu.imu()
 a = tkinTest.tkinTest()
 print("showing")
-a.update()
+a.run(a)
 print("after")

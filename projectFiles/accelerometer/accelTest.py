@@ -3,6 +3,8 @@ import time
 import imu
 import threading
 import matplotlib.pyplot as plt
+import tkinTest
+a = tkinTest.tkinTest()
 
 #create imu object
 hold = imu.imu()
@@ -12,7 +14,9 @@ hold.initialize()
 hold.calibrate()
 #create a thread that runs that function so it can run simultaneously
 x = threading.Thread(target=hold.update, args=[0])
+y = threading.Thread(target=tkinTest.run, args=[imu])
 x.start()
+y.start()
 hold.turning = False
 time.sleep(5)
 print("turn")
@@ -27,6 +31,7 @@ print("sleep done")
 time.sleep(.5)
 #close other thread
 x.join()
+y.join()
 
 #all of this below is for plotting
 fig, (ax1, ax2, ax3) = plt.subplots(3, 1)
