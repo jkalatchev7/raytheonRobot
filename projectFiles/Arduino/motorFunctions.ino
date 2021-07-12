@@ -81,14 +81,14 @@ void turnBot(int angle) {
     digitalWrite(in2, LOW);
     digitalWrite(in3, LOW);
     digitalWrite(in4, HIGH);
-    delay(angle * 14);
+    delay(angle * 8);
     stopMotors();
   } else {
     digitalWrite(in1, LOW);
     digitalWrite(in2, HIGH);
     digitalWrite(in3, HIGH);
     digitalWrite(in4, LOW);
-    delay(angle * -13);
+    delay(angle * -7);
     stopMotors();
   }
 }

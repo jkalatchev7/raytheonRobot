@@ -131,7 +131,7 @@ class imu:
                     time.sleep(.001)
                     temp = self.read_data(1)
                     temp = temp - self.offsetZ
-                    temp = temp * -1 / 3
+                    temp = temp / 3
                     holder += temp
 
                 if abs(holder) < 1:
@@ -160,7 +160,7 @@ class imu:
                     temp = temp - self.offsetX
                     tempB = tempB - self.offsetZ
                     temp = temp / 3
-                    temoB = tempB/3
+                    temoB = tempB / 3 * -1
                     
                     holder += temp
                     holderB += tempB

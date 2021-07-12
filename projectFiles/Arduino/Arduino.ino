@@ -186,10 +186,10 @@ void irTranslate() {
       delay(200);
       stopMotors();
       delay(500);
-      forwardMotors(180);
-      delay(500);
+      forwardMotors(150);
+      delay(300);
       myservo.write(0);
-      delay(500);
+      delay(300);
       stopMotors();
       
       break;
@@ -198,6 +198,7 @@ void irTranslate() {
       break;
     case 90:
       Serial.println("9");
+      myservo.write(0);
       break;
     case 82:
       Serial.println("0");
