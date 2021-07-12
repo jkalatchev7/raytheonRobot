@@ -124,6 +124,7 @@ class imu:
         # runs until self.stop becomes True
         while (True):
             holder = 0
+            holderB = 0
             if (self.turning):
 
                 for i in range(3):
@@ -145,7 +146,8 @@ class imu:
                 omega.append(angular)
                 
                 acc.append(0.)
-                vell.append(0.)
+                vel = 0
+                vell.append(vel)
                 posX.append(self.posX)
                 posY.append(self.posY)
                 dist.append(deltaX)
@@ -154,17 +156,28 @@ class imu:
                 for i in range(3):
                     time.sleep(.001)
                     temp = self.read_data(0)
+                    tempB = self.read_data(1)
                     temp = temp - self.offsetX
+                    tempB = tempB - self.offsetZ
                     temp = temp / 3
+                    temoB = tempB/3
+                    
                     holder += temp
-
+                    holderB += tempB
+                    
                 if abs(holder) < .35:
                     holder = 0
-
+                if abs(holderB) < 10:
+                    holderB = 0
+                    
                 acc.append(holder)
-                alpha.append(0)
+                alpha.append(holderB)
+                
+                
                 nextT = time.time()
                 elapse = nextT - prev
+                angular = angular + holderB * elapse
+                omega.append(angular)
                 vel = vel + holder * elapse
                 # squishes down to 0 if vel is sufficiently small
                 if vel < .2 and holder <= 0:
@@ -176,7 +189,6 @@ class imu:
                 posX.append(self.posX)
                 posY.append(self.posY)
                 dist.append(deltaX)
-                omega.append(angular)
                 prev = nextT
             # sets arrays so they can be plotted
             if (self.stop):

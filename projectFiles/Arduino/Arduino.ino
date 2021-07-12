@@ -59,7 +59,7 @@ void serialTranslate() {
     delay(100);
     Serial.println("done");
   } else if (action == "sequ") {
-    holderServo.write(0);
+    myservo.write(120);
     delay(200);
     int middleDistance = Distance_test();
     
@@ -74,7 +74,7 @@ void serialTranslate() {
     delay(600);
     turnBot(100);
     delay(600);
-    forwardMotors(255, 10);
+    forwardMotors(255, 20);
     delay(600);
     turnBot(-100);
     Serial.println("done");
@@ -174,7 +174,7 @@ void irTranslate() {
       Serial.println("7");
       analogValue = analogRead(A3);
       myservo.write(120);
-      turnBot(true);
+      turnBotB(true);
       voltage = analogValue * (5.0 / 1024.0);
       Serial.println(voltage);
       while (voltage > 0.5) {
@@ -186,7 +186,7 @@ void irTranslate() {
       delay(200);
       stopMotors();
       delay(500);
-      forwardMotors(200, 10);
+      forwardMotors(180);
       delay(500);
       myservo.write(0);
       delay(500);

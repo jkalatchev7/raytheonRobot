@@ -207,8 +207,8 @@ while 1:
         ax7.plot(hold.cordX[::5], hold.cordY[::5], 'o-')
         ax7.set_xlabel("X (feet)")
         ax7.set_ylabel("Y (feet)")
-        ax7.set_xlim(0, 2)
-        ax7.set_ylim(0, 2)
+        ax7.set_xlim(-2, 2)
+        ax7.set_ylim(-2, 2)
         fig1.show()
         # print final positions which are stored in the object we've created
         print("Final Positions: " + str(round(hold.posX * 12, 1)) + ", " + str(round(hold.posY * 12, 1)))
