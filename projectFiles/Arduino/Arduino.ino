@@ -158,7 +158,12 @@ void irTranslate() {
       Serial.println("4");
       break;
     case 24:
-      Serial.println("5");
+      Serial.println("turn");
+      delay(500);
+      turnBot(50);
+      Serial.println("move");
+      delay(500);
+      Serial.println("done");
       break;
     case 94:
       Serial.println("6");
