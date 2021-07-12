@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import imutils
 import cameraTest as ct
-import serialTestA
 from datetime import datetime
 PRINT = False
 import time

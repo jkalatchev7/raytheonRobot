@@ -110,14 +110,20 @@ void irTranslate() {
   switch(IrReceiver.decodedIRData.command) {
     case 70:
       Serial.println("Up");
+      Serial.println("move");
+      delay(200);
       forwardMotors(255, 12);
       break;
     case 68:
       Serial.println("Left");
+      Serial.println("turn");
+      delay(200);
       turnBot(-90);
       break;
     case 67:
       Serial.println("Right");
+      Serial.println("turn");
+      delay(200);
       turnBot(90);
       break;
     case 21:
@@ -158,11 +164,7 @@ void irTranslate() {
       Serial.println("4");
       break;
     case 24:
-      Serial.println("turn");
-      delay(500);
-      turnBot(50);
-      Serial.println("move");
-      delay(500);
+      Serial.println("5");
       Serial.println("done");
       break;
     case 94:
@@ -184,7 +186,7 @@ void irTranslate() {
       delay(200);
       stopMotors();
       delay(500);
-      forwardMotors(80);
+      forwardMotors(200, 10);
       delay(500);
       myservo.write(0);
       delay(500);
@@ -220,7 +222,7 @@ void loop() {
     //Serial.println(IrReceiver.decodedIRData.command);
     receiver.resume();
   } else {
-    Serial.println("Nada");
+    Serial.println("Nothing");
     //Serial.println(String(Distance_test()));
     delay(500);
   }

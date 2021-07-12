@@ -7,7 +7,7 @@ import time
 from signal import signal, SIGTERM, SIGHUP, pause
 from rpi_lcd import LCD
 
-import matplotlib as plt
+import matplotlib.pyplot as plt
 from accelerometer import imu
 
 hold = imu.imu()
@@ -21,18 +21,18 @@ startHoop = 1
 nextHoop = 0
 hoops = [[3, 7], [17, 7], [17, 3], [3, 3], [7, 5], [13, 5]]
 pin = [10, 5]
-lcd = LCD()
-lcd.clear()
+# lcd = LCD()
+# lcd.clear()
 x.start()
 
 def safe_exit(signum, frame):
     exit(1)
 
 
-signal(SIGTERM, safe_exit)
-signal(SIGHUP, safe_exit)
-lcd.text("State:", 1)
-lcd.text(state, 2)
+# signal(SIGTERM, safe_exit)
+# signal(SIGHUP, safe_exit)
+# lcd.text("State:", 1)
+# lcd.text(state, 2)
 
 try:
     ser = serial.Serial(  # set parameters, in fact use your own :-)
@@ -83,7 +83,7 @@ def arduinoRead():
 
 while 1:
     state = nextState
-    lcd.text(state, 2)
+    #lcd.text(state, 2)
     print("Entering State: " + state)
     if state == "BallSearch":
         print("Searching for ball...")
@@ -126,12 +126,15 @@ while 1:
     elif state == "Resting":
         inp = arduinoRead()
         while inp != "done":
+            print(inp)
+            time.sleep(.01)
             if inp == 'turn':
                 hold.turning = True
                 print("turning")
             if inp == 'move':
                 hold.turning = False
                 print("moving forward")
+            inp = arduinoRead()
         nextState = "over"
 
     elif state == "getInFrontOfHoop":
