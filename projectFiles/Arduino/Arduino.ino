@@ -16,17 +16,19 @@ decode_results results;
 int analogValue;
 float voltage;
 void setup() {
+
   initializeMotors();
   myservo.attach(3);
   holderServo.attach(13);
   pinMode(LED_BUILTIN, OUTPUT);
   myservo.write(0);
-  holderServo.write(90);
+  holderServo.write(-40);
   pinMode(A4, INPUT);
   pinMode(A5, OUTPUT);
 
-
-  Serial.begin(9600);
+    
+   Serial.begin(9600);
+   Serial.println("restart");
   receiver.enableIRIn();
 }
 
@@ -44,19 +46,17 @@ int Distance_test() {
 
 void serialTranslate() {
   Serial.println("Serial Trans");
-  digitalWrite(LED_BUILTIN, HIGH);
   String r = Serial.readString();
+
   String action = r.substring(0,4);
-  
   if (action == "move") {
     int dis = r.substring(5).toInt();
-    forwardMotors(255, dis);
-    delay(100);
+    forwardMotors(255, dis * 12);
     Serial.println("done");
   } else if (action == "turn") {
     int angle = r.substring(5).toInt();
     turnBot(angle);
-    delay(100);
+    delay(900);
     Serial.println("done");
   } else if (action == "sequ") {
     myservo.write(120);
@@ -217,7 +217,6 @@ void irTranslate() {
 }
 
 void loop() {
-  
    if (Serial.available() > 0) {
     serialTranslate();
   } else if(IrReceiver.decode()) {
@@ -227,7 +226,7 @@ void loop() {
   } else {
     Serial.println("Nothing");
     //Serial.println(String(Distance_test()));
-    delay(500);
+    delay(100);
   }
  
 }

@@ -10,21 +10,17 @@ from rpi_lcd import LCD
 import matplotlib.pyplot as plt
 from accelerometer import imu
 
-hold = imu.imu()
-hold.initialize()
-hold.calibrate()
 
-x = threading.Thread(target=hold.update, args=[0])
 state = ""
-nextState = "Resting"
+nextState = "getInFrontOfHoop"
 startHoop = 1
 passStart = False
 nextHoop = 1
-hoops = [[3, 1, 90], [3, 15, 90], [7, 19, -90], [7, 5, -90], [5, 5, 90], [5, 15, -90]]
+hoops = [[3., 1., 90], [3., 15., 90], [7., 19., -90], [7., 5., -90], [5., 5., 90], [5., 15., -90]]
 pin = [5, 10]
 # lcd = LCD()
 # lcd.clear()
-x.start()
+
 
 def wait_for_done():
     inp = arduinoRead()
@@ -47,7 +43,10 @@ try:
         bytesize=serial.SEVENBITS,
         parity=serial.PARITY_EVEN,
         stopbits=serial.STOPBITS_ONE,
-        timeout=1
+        write_timeout = 0,
+        timeout=None,
+        rtscts = False,
+        xonxoff  = False
     )
     ser.isOpen()  # try to open port, if possible print message and proceed with 'while True:'
     print("port is opened!")
@@ -56,14 +55,19 @@ except IOError:  # if port is already opened, close it and open it again and pri
     ser.close()
     ser.open()
     print("port was already open, was closed and opened again!")
+hold = imu.imu()
+hold.initialize()
+hold.calibrate()
 
+x = threading.Thread(target=hold.update, args=[0])
+x.start()
 time.sleep(.1)
 ser.flushInput()
 
 
 def sendToArduino(a, b):
     if (a == 0):
-        strr = "move " + str(int(b))
+        strr = "move " + str(float(b))
         print(strr)
         ser.write(bytes(strr, 'utf-8'))
         ser.flush()
@@ -82,7 +86,6 @@ def sendToArduino(a, b):
         print(strr)
         ser.write(bytes(strr, 'utf-8'))
         ser.flush()
-
 
 def arduinoRead():
     return ser.readline().rstrip().decode('utf-8')
@@ -113,12 +116,7 @@ while 1:
         # sends move command and waits until moving is complete
         hold.turning = False
         sendToArduino(0, ar[1])
-        inp = arduinoRead()
-        print(inp)
-        while inp != "done":
-            inp = arduinoRead()
-            print(inp)
-
+        wait_for_done()
         # sends command to recover ball
         hold.turning = True
         sendToArduino(3, 0)
@@ -146,14 +144,18 @@ while 1:
 
     elif state == "getInFrontOfHoop":
         hoop = nextHoop
+        print("Going for Hoop #" + str(hoop))
         if hoop == startHoop and passStart:
             nextState = "pinSearch"
-        elif hoop == startHoop:
-            passStart = True
+            continue
+        
         else:
-            curr = [hold.cordX, hold.cordY, hold.angleZ]
+            if hoop == startHoop:
+                passStart = True
+            curr = [hold.posX, hold.posX, hold.angleZ]
             nextH = hoops[hoop - 1]
             print(nextH)
+            print(curr)
             hold.turning = True
             if (curr[0] < nextH[0]):
                 sendToArduino(1, -1 * curr[2])
@@ -166,10 +168,10 @@ while 1:
 
             #now we move horizontally
             hold.turning = False
-            sendToArduino(0, abs(hold.cordX - nextH[0]))
+            sendToArduino(0, abs(hold.posX - nextH[0]))
             wait_for_done()
             hold.turning = True
-            if (hold.cordY > nextH[1]):
+            if (hold.posY > nextH[1]):
                 sendToArduino(1, 270 - hold.angleZ)
                 wait_for_done()
             else:
@@ -177,7 +179,7 @@ while 1:
                 wait_for_done()
 
             hold.turning = False
-            sendToArduino(0, abs(hold.cordY - nextH[1]))
+            sendToArduino(0, abs(hold.posY - nextH[1]))
             wait_for_done()
             hold.turning = True
             sendToArduino(1, nextH[2] - hold.angleZ)
@@ -192,7 +194,7 @@ while 1:
         print("Picture Taken, Getting number...")
         # a  = numverification()
         # if a == nextHoop:
-        nextState = "Sequence"
+        nextState = "over"
         # else:
         # god knows
 
@@ -201,7 +203,6 @@ while 1:
         # Activate motors until black crease
         nextHoop = nextHoop % 6
         nextHoop += 1
-        nextState = "circleHoop"
 
         sendToArduino(2, 0)
         inp = arduinoRead()
@@ -215,7 +216,7 @@ while 1:
                 print("moving forward")
             inp = arduinoRead()
             print(inp)
-        nextState = "ballSearch"
+        nextState = "over"
     elif state == "pegSearch":
         # Look for peg
         nextState = "shootAtPeg"
@@ -242,16 +243,18 @@ while 1:
         ax5.set_ylabel("Theta (deg)")
         figure.show()
         fig1, (ax7) = plt.subplots(1, 1)
-        ax7.plot(hold.cordY[::5], hold.cordX[::5], 'o-')
         fig1.suptitle('Movement on Plane')
+        ax7.plot(hold.cordX, hold.cordY, 'o-')
         ax7.set_xlabel("X (feet)")
         ax7.set_ylabel("Y (feet)")
-        ax7.set_xlim(-2, 2)
-        ax7.set_ylim(0, 4)
+        ax7.set_xlim(0, 10)
+        ax7.set_ylim(0, 20)
+        #ax7.set_aspect('equal', adjustable="datalim")
         fig1.show()
+        
         # print final positions which are stored in the object we've created
         print("Final Positions: " + str(round(hold.posX * 12, 1)) + ", " + str(round(hold.posY * 12, 1)))
-        print("Final Orientation: " + str(-1 * round(hold.angleZ, 1)) + " degrees")
+        print("Final Orientation: " + str(round(hold.angleZ, 1)) + " degrees")
         print("over")
         ser.close()
         break

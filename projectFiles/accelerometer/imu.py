@@ -23,8 +23,8 @@ Device_Address = 0x68
 class imu:
     def __init__(self):
         # most important 3 are at the top
-        self.posX = 5
-        self.posY = 0
+        self.posX = 5.
+        self.posY = 0.
         self.angleZ = 90
 
         # offsets help us get rid of some of the sensor's noise
@@ -110,16 +110,16 @@ class imu:
         self.stop = False
         acc = [0.0]
         vell = [0.0]
-        posX = [0.0]
-        posY = [0.0]
+        posX = [self.posX]
+        posY = [self.posY]
         alpha = [0.0]
-        omega = [0.0]
+        omega = [self.angleZ]
         dist = [0.0]
         theta = [0.0]
         turning = False
 
         vel = 0
-        angular = 0
+        angular = self.angleZ
         prev = time.time()
         # runs until self.stop becomes True
         while (True):
@@ -131,7 +131,7 @@ class imu:
                     time.sleep(.001)
                     temp = self.read_data(1)
                     temp = temp - self.offsetZ
-                    temp = temp / 3
+                    temp = temp / 3 * -1
                     holder += temp
 
                 if abs(holder) < 1:
