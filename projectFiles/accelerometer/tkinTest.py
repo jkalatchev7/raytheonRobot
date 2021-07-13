@@ -11,6 +11,7 @@ class tkinTest:
         self.canv = tkinter.Canvas(self.root, height=400, width=200, bg="green")
         self.img = tkinter.PhotoImage(file='robot.png')
         self.robot = self.canv.create_image(10,10, image=self.img)
+        self.working = True
         self.label.pack()
         self.canv.pack()
         hoop1 = self.make_rec(50, 50, 10, 10)
@@ -20,15 +21,8 @@ class tkinTest:
     def make_rec(self, x, y, h, w):
         return self.canv.create_rectangle(x-w/2, y-h/2, x+w/2, y+h/2, fill="red")
 
-    def update(self, imu):
-        self.label['text'] = randint(0, 1000)
-        self.canv.itemconfigure(self.robot, x=imu.posX, y=imu.posY)
-        self.root.after(5, self.update)
-
-    def show(self):
-        self.root.mainloop()
-        print("gang")
-
-    def run(self, imu):
-        self.update(imu)
-        self.show()
+    def update(self):
+        while True:
+            self.root.update()
+            self.label['text'] = randint(300,400)
+            self.label.pack()

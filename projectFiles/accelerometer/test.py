@@ -1,8 +1,16 @@
-import tkinTest
-import imu
+import time
 
-accel = imu.imu()
+import tkinTest
+import threading
+
+
+
 a = tkinTest.tkinTest()
-print("showing")
-a.run(a)
-print("after")
+x = threading.Thread(target=a.run, args=[])
+x.start()
+print("started")
+time.sleep(3)
+print("done")
+a.working = False
+x.join()
+print("Done")

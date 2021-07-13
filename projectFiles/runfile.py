@@ -1,4 +1,6 @@
 import threading
+import tkinter
+from random import randint
 
 import test
 import serial
@@ -10,7 +12,9 @@ from rpi_lcd import LCD
 import matplotlib.pyplot as plt
 from accelerometer import imu
 
-
+root = tkinter.Tk()
+root.title("Robot Visual")
+label = tkinter.Label(root, "hello world")
 state = ""
 nextState = "getInFrontOfHoop"
 startHoop = 1
@@ -92,6 +96,8 @@ def arduinoRead():
 
 
 while 1:
+    root.update()
+    label['text'] = nextState
     state = nextState
     #lcd.text(state, 2)
     print("Entering State: " + state)
