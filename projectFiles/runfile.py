@@ -18,12 +18,19 @@ x = threading.Thread(target=hold.update, args=[0])
 state = ""
 nextState = "Resting"
 startHoop = 1
-nextHoop = 0
-hoops = [[3, 7], [17, 7], [17, 3], [3, 3], [7, 5], [13, 5]]
-pin = [10, 5]
+passStart = False
+nextHoop = 1
+hoops = [[3, 1, 90], [3, 15, 90], [7, 19, -90], [7, 5, -90], [5, 5, 90], [5, 15, -90]]
+pin = [5, 10]
 # lcd = LCD()
 # lcd.clear()
 x.start()
+
+def wait_for_done():
+    inp = arduinoRead()
+    while (inp != 'done'):
+        print(inp)
+        inp = arduinoRead()
 
 def safe_exit(signum, frame):
     exit(1)
@@ -121,7 +128,7 @@ while 1:
             inp = arduinoRead()
             print(inp)
         print("Ball Recovered")
-        nextState = "Sequence"
+        nextState = "getInFrontOfHoop"
 
     elif state == "Resting":
         inp = arduinoRead()
@@ -139,15 +146,49 @@ while 1:
 
     elif state == "getInFrontOfHoop":
         hoop = nextHoop
-        if hoop == startHoop:
+        if hoop == startHoop and passStart:
             nextState = "pinSearch"
-        else:  # When we are in front of hoop
-            # bunch of movement
+        elif hoop == startHoop:
+            passStart = True
+        else:
+            curr = [hold.cordX, hold.cordY, hold.angleZ]
+            nextH = hoops[hoop - 1]
+            print(nextH)
+            hold.turning = True
+            if (curr[0] < nextH[0]):
+                sendToArduino(1, -1 * curr[2])
+                #face right
+            elif(curr[0] > nextH[0]):
+                sendToArduino(1, 180 - curr[2])
+                #face left
+            #turn go horizontally
+            wait_for_done()
+
+            #now we move horizontally
+            hold.turning = False
+            sendToArduino(0, abs(hold.cordX - nextH[0]))
+            wait_for_done()
+            hold.turning = True
+            if (hold.cordY > nextH[1]):
+                sendToArduino(1, 270 - hold.angleZ)
+                wait_for_done()
+            else:
+                sendToArduino(1, 90 - hold.angleZ)
+                wait_for_done()
+
+            hold.turning = False
+            sendToArduino(0, abs(hold.cordY - nextH[1]))
+            wait_for_done()
+            hold.turning = True
+            sendToArduino(1, nextH[2] - hold.angleZ)
+            wait_for_done()
+            print("finished")
+
             nextState = "VerifyNumber"
 
     elif state == "VerifyNumber":
         print("Taking picture... ")
-        test.hoop_pic()
+        #test.hoop_pic()
         print("Picture Taken, Getting number...")
         # a  = numverification()
         # if a == nextHoop:
@@ -165,18 +206,15 @@ while 1:
         sendToArduino(2, 0)
         inp = arduinoRead()
         print(inp)
-        while (inp != "circle"):
-            inp = arduinoRead()
-            print(inp)
-        nextState = "circleHoop"
-    elif state == "circleHoop":
-        inp = arduinoRead()
-        print(inp)
         while (inp != "done"):
+            if inp == 'turn':
+                hold.turning = True
+                print("turning")
+            if inp == 'move':
+                hold.turning = False
+                print("moving forward")
             inp = arduinoRead()
             print(inp)
-        # check which hoop we are at... preprogram which direction to go depending on where we want robot to be facing after
-        # turn 90, move past hoop, turn -90 move past hoop, turn -90
         nextState = "ballSearch"
     elif state == "pegSearch":
         # Look for peg

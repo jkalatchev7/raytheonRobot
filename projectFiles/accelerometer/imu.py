@@ -23,9 +23,9 @@ Device_Address = 0x68
 class imu:
     def __init__(self):
         # most important 3 are at the top
-        self.posX = 0
+        self.posX = 5
         self.posY = 0
-        self.angleZ = 0
+        self.angleZ = 90
 
         # offsets help us get rid of some of the sensor's noise
         self.offsetX = 6.9

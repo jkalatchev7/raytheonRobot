@@ -62,7 +62,7 @@ void serialTranslate() {
     myservo.write(120);
     delay(200);
     int middleDistance = Distance_test();
-    
+    Serial.println("move");
     while (middleDistance >= 20) {
       Serial.println(String(middleDistance));
       delay(50);
@@ -70,11 +70,13 @@ void serialTranslate() {
       middleDistance = Distance_test();
     }
     stopMotors();
-    Serial.println("circle");
+    Serial.println("turn");
     delay(600);
     turnBot(100);
+    Serial.println("move");
     delay(600);
     forwardMotors(255, 20);
+    Serial.println("turn");
     delay(600);
     turnBot(-100);
     Serial.println("done");
