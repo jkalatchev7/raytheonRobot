@@ -21,12 +21,12 @@ Device_Address = 0x68
 
 # defines some instance variables of the class
 class imu:
-    def __init__(self):
+    def __init__(self, posX=0, posY=0, angleZ=0):
         # most important 3 are at the top
-        self.posX = 5.
-        self.posY = 0.
-        self.angleZ = 90
-
+        self.posX = posX
+        self.posY = posY
+        self.angleZ = angleZ
+        self.dist_gone = 0
         # offsets help us get rid of some of the sensor's noise
         self.offsetX = 6.9
         self.offsetZ = 1.0
@@ -46,7 +46,7 @@ class imu:
         self.theta = 0
         self.omega = 0
         self.alpha = 0
-        self.dist = 0
+        self.dist = [0]
 
     # called once to set up the bus
     def initialize(self):
@@ -190,6 +190,7 @@ class imu:
                 posY.append(self.posY)
                 dist.append(deltaX)
                 prev = nextT
+                self.dist_gone = deltaX
             # sets arrays so they can be plotted
             if (self.stop):
                 self.cordX = posX

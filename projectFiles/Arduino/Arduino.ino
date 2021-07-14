@@ -79,6 +79,14 @@ void serialTranslate() {
     Serial.println("turn");
     delay(600);
     turnBot(-100);
+    Serial.println("move");
+    delay(600);
+    forwardMotors(255, 20);
+    Serial.println("turn");
+    delay(600);
+    turnBot(-100);
+
+    
     Serial.println("done");
   } else if (action == "coll") {
     analogValue = analogRead(A3);
@@ -89,9 +97,29 @@ void serialTranslate() {
     stopMotors();
     holderServo.write(90);
     Serial.println("collected");
-  } else {
-    Serial.print(r);
+  } else if (action == "turR") {
+    turnBotB(true);
+    while (Serial.available() == 0) {
+      Serial.print(Serial.available());
+    }
+
+    stopMotors();
+  } else if (action == "turL") {
+    turnBotB(false);
+    while (Serial.available() == 0) {
+      Serial.print(Serial.available());
+    }
+
+    stopMotors();
+  } else if (action == "forw") {
+    forwardMotors(200);
+    while (Serial.available() == 0) {
+      Serial.print(Serial.available());
+    } 
+    stopMotors();
   }
+  
+  
   digitalWrite(LED_BUILTIN, LOW);
   /*
   switch(r) {

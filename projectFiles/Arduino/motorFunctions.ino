@@ -93,9 +93,8 @@ void turnBot(int angle) {
 }
 
 void turnBotB(bool a) {
-  Serial.println("Turning motors");
-  analogWrite(enA, 120);
-  analogWrite(enB, 120);
+  analogWrite(enA, 150);
+  analogWrite(enB, 150);
 
   if (a) {
     digitalWrite(in1, HIGH);

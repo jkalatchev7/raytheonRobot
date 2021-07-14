@@ -15,15 +15,17 @@ from accelerometer import imu
 root = tkinter.Tk()
 root.title("Robot Visual")
 label = tkinter.Label(root, text="hello world")
+labelA = tkinter.Label(root, text= "temp")
 root.geometry("300x500")
 
 canv = tkinter.Canvas(root, height=400, width=200, bg="green")
 robot = canv.create_image(10,10, image=tkinter.PhotoImage(file='accelerometer/robot.png'))
 label.pack()
+labelA.pack()
 canv.pack()
 root.update()
 state = ""
-nextState = "getInFrontOfHoop"
+nextState = "testTurn"
 startHoop = 1
 passStart = False
 nextHoop = 1
@@ -68,7 +70,7 @@ except IOError:  # if port is already opened, close it and open it again and pri
     ser.close()
     ser.open()
     print("port was already open, was closed and opened again!")
-hold = imu.imu()
+hold = imu.imu(7, 0, 90)
 hold.initialize()
 hold.calibrate()
 
@@ -79,27 +81,36 @@ ser.flushInput()
 
 
 def sendToArduino(a, b):
+    strr = ""
     if (a == 0):
         strr = "move " + str(float(b))
-        print(strr)
-        ser.write(bytes(strr, 'utf-8'))
-        ser.flush()
+
     elif (a == 1):
         strr = "turn " + str(int(b))
-        print(strr)
-        ser.write(bytes(strr, 'utf-8'))
-        ser.flush()
+
     elif (a == 2):
         strr = "sequ "
-        print(strr)
-        ser.write(bytes(strr, 'utf-8'))
-        ser.flush()
-    elif (a == 3):
-        strr = "coll"
-        print(strr)
-        ser.write(bytes(strr, 'utf-8'))
-        ser.flush()
 
+    elif (a == 3):
+        strr = "coll "
+
+    elif (a == 4):
+        if (b == 0):
+            strr = "turL "
+        else:
+            strr = "turR "  
+        
+    elif (a == 5):
+        strr = "stop "
+        
+    elif (a == 6):
+        strr = "forw"
+
+    print("Sending Command: " + strr)
+    ser.write(bytes(strr, 'utf-8'))
+    ser.flush()
+    
+    
 def arduinoRead():
     return ser.readline().rstrip().decode('utf-8')
 
@@ -118,16 +129,11 @@ while 1:
             print("none found")
             hold.turning = True
             sendToArduino(1, 40)
-
-            time.sleep(3)
+            wait_for_done()
             ar = test.ball_search()
         # sends turn command and waits until turning is finished
-        sendToArduino(1, ar[3] + 6)
-        inp = arduinoRead()
-        print(inp)
-        while inp != "done":
-            inp = arduinoRead()
-            print(inp)
+        sendToArduino(1, ar[3])
+        wait_for_done()
 
         # sends move command and waits until moving is complete
         hold.turning = False
@@ -137,10 +143,16 @@ while 1:
         hold.turning = True
         sendToArduino(3, 0)
         inp = arduinoRead()
-        print(inp)
-        while inp != "collected":
-            inp = arduinoRead()
+        while inp != "done":
             print(inp)
+            time.sleep(.01)
+            if inp == 'turn':
+                hold.turning = True
+                print("Arduino -> turning")
+            if inp == 'move':
+                hold.turning = False
+                print("Arduino -> moving forward")
+            inp = arduinoRead()
         print("Ball Recovered")
         nextState = "getInFrontOfHoop"
 
@@ -151,10 +163,10 @@ while 1:
             time.sleep(.01)
             if inp == 'turn':
                 hold.turning = True
-                print("turning")
+                print("Arduino -> turning")
             if inp == 'move':
                 hold.turning = False
-                print("moving forward")
+                print("Arduino -> moving forward")
             inp = arduinoRead()
         nextState = "over"
 
@@ -226,17 +238,56 @@ while 1:
         while (inp != "done"):
             if inp == 'turn':
                 hold.turning = True
-                print("turning")
+                print("Arduino -> turning")
             if inp == 'move':
                 hold.turning = False
-                print("moving forward")
+                print("Aruino -> moving forward")
             inp = arduinoRead()
             print(inp)
-        nextState = "over"
+        nextState = "BallSearch"
     elif state == "pegSearch":
         # Look for peg
         nextState = "shootAtPeg"
-
+    elif state == "testTurn":
+        hold.turning = True
+        target = 45
+        if (hold.angleZ < target):
+            sendToArduino(4, 0)
+        else:
+            sendToArduino(4, 1)
+            
+        while (round(hold.angleZ) != target + 1 and round(hold.angleZ) != target - 1):
+            labelA['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
+            labelA.pack()
+            root.update()
+            time.sleep(.01)
+        sendToArduino(5, 0)
+        time.sleep(.8)
+        labelA['text'] = str(round(hold.angleZ))
+        labelA.pack()
+        root.update()
+        nextState = "over"
+    
+    elif state == "testForw":
+        hold.turning = False
+        curr = hold.dist_gone
+        print(str(curr))
+        distToGo = 1
+        sendToArduino(6, 0)
+            
+        while (hold.dist_gone < (curr + distToGo)):
+            print(hold.dist[-1])
+            labelA['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
+            labelA.pack()
+            root.update()
+            time.sleep(.01)
+        sendToArduino(5, 0)
+        time.sleep(.5)
+        labelA['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
+        labelA.pack()
+        root.update()
+        nextState = "over"
+        
     else:
         hold.stop = True
         x.join()
