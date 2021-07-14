@@ -14,7 +14,14 @@ from accelerometer import imu
 
 root = tkinter.Tk()
 root.title("Robot Visual")
-label = tkinter.Label(root, "hello world")
+label = tkinter.Label(root, text="hello world")
+root.geometry("300x500")
+
+canv = tkinter.Canvas(root, height=400, width=200, bg="green")
+robot = canv.create_image(10,10, image=tkinter.PhotoImage(file='accelerometer/robot.png'))
+label.pack()
+canv.pack()
+root.update()
 state = ""
 nextState = "getInFrontOfHoop"
 startHoop = 1
@@ -28,6 +35,8 @@ pin = [5, 10]
 
 def wait_for_done():
     inp = arduinoRead()
+    #canv.move(robot, 10, 0)
+    #root.update()
     while (inp != 'done'):
         print(inp)
         inp = arduinoRead()
@@ -96,9 +105,10 @@ def arduinoRead():
 
 
 while 1:
-    root.update()
-    label['text'] = nextState
     state = nextState
+    label['text'] = "State: " + nextState
+    root.update()
+    
     #lcd.text(state, 2)
     print("Entering State: " + state)
     if state == "BallSearch":
@@ -158,7 +168,7 @@ while 1:
         else:
             if hoop == startHoop:
                 passStart = True
-            curr = [hold.posX, hold.posX, hold.angleZ]
+            curr = [hold.posX, hold.posY, hold.angleZ]
             nextH = hoops[hoop - 1]
             print(nextH)
             print(curr)
