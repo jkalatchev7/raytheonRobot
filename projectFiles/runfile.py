@@ -114,6 +114,42 @@ def sendToArduino(a, b):
 def arduinoRead():
     return ser.readline().rstrip().decode('utf-8')
 
+def turnTo(angle):
+    hold.turning = True
+    if (hold.angleZ < angle):
+        sendToArduino(4, 0)
+    else:
+        sendToArduino(4, 1)
+        
+    while (round(hold.angleZ) > (angle + 4) or round(hold.angleZ) < (angle - 4)):
+        labelA['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
+        labelA.pack()
+        root.update()
+        time.sleep(.01)
+    sendToArduino(5, 0)
+    time.sleep(.8)
+    labelA['text'] = str(round(hold.angleZ))
+    labelA.pack()
+    root.update()
+
+def moveAmount(dist):
+    hold.turning = False
+    curr = hold.dist_gone
+    print(str(curr))
+    distToGo = dist
+    sendToArduino(6, 0)
+        
+    while (hold.dist_gone < (curr + distToGo)):
+        print(hold.dist[-1])
+        labelA['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
+        labelA.pack()
+        root.update()
+        time.sleep(.01)
+    sendToArduino(5, 0)
+    time.sleep(.5)
+    labelA['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
+    labelA.pack()
+    root.update()
 
 while 1:
     state = nextState
@@ -249,43 +285,13 @@ while 1:
         # Look for peg
         nextState = "shootAtPeg"
     elif state == "testTurn":
-        hold.turning = True
-        target = 45
-        if (hold.angleZ < target):
-            sendToArduino(4, 0)
-        else:
-            sendToArduino(4, 1)
-            
-        while (round(hold.angleZ) != target + 1 and round(hold.angleZ) != target - 1):
-            labelA['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
-            labelA.pack()
-            root.update()
-            time.sleep(.01)
-        sendToArduino(5, 0)
-        time.sleep(.8)
-        labelA['text'] = str(round(hold.angleZ))
-        labelA.pack()
-        root.update()
+        turnTo(60)
+        time.sleep(1)
+        moveAmount(.5)
         nextState = "over"
     
     elif state == "testForw":
-        hold.turning = False
-        curr = hold.dist_gone
-        print(str(curr))
-        distToGo = 1
-        sendToArduino(6, 0)
-            
-        while (hold.dist_gone < (curr + distToGo)):
-            print(hold.dist[-1])
-            labelA['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
-            labelA.pack()
-            root.update()
-            time.sleep(.01)
-        sendToArduino(5, 0)
-        time.sleep(.5)
-        labelA['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
-        labelA.pack()
-        root.update()
+        moveAmount(1.2)
         nextState = "over"
         
     else:
