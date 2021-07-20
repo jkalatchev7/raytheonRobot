@@ -47,7 +47,7 @@ int Distance_test() {
 void serialTranslate() {
   Serial.println("Serial Trans");
   String r = Serial.readString();
-
+  Serial.println(r);
   String action = r.substring(0,4);
   if (action == "move") {
     int dis = r.substring(5).toInt();
@@ -59,32 +59,62 @@ void serialTranslate() {
     delay(900);
     Serial.println("done");
   } else if (action == "sequ") {
-    myservo.write(120);
-    delay(200);
-    int middleDistance = Distance_test();
-    Serial.println("move");
-    while (middleDistance >= 20) {
-      Serial.println(String(middleDistance));
-      delay(50);
-      forwardMotors(175);
-      middleDistance = Distance_test();
-    }
-    stopMotors();
-    Serial.println("turn");
-    delay(600);
-    turnBot(100);
-    Serial.println("move");
-    delay(600);
-    forwardMotors(255, 20);
-    Serial.println("turn");
-    delay(600);
-    turnBot(-100);
-    Serial.println("move");
-    delay(600);
-    forwardMotors(255, 20);
-    Serial.println("turn");
-    delay(600);
-    turnBot(-100);
+
+
+
+      myservo.write(180);              
+      delay(1000); 
+
+      forwardMotors(240);
+      delay (100);
+ 
+      bool card = false;  
+while (card == false){
+ 
+      float leftDistance = Distance_test();
+      
+     if (leftDistance <=50){
+        delay(500);
+        stopMotors();
+       
+        Serial.print("done");
+
+        
+      }
+       else if (leftDistance > 50) {
+        
+        forwardMotors(240);
+      }
+
+     
+}
+
+//    myservo.write(120);
+//    delay(200);
+//    int middleDistance = Distance_test();
+//    Serial.println("move");
+//    while (middleDistance >= 20) {
+//      Serial.println(String(middleDistance));
+//      delay(50);
+//      forwardMotors(175);
+//      middleDistance = Distance_test();
+//    }
+//    stopMotors();
+//    Serial.println("turn");
+//    delay(600);
+//    turnBot(100);
+//    Serial.println("move");
+//    delay(600);
+//    forwardMotors(255, 20);
+//    Serial.println("turn");
+//    delay(600);
+//    turnBot(-100);
+//    Serial.println("move");
+//    delay(600);
+//    forwardMotors(255, 20);
+//    Serial.println("turn");
+//    delay(600);
+//    turnBot(-100);
 
     
     Serial.println("done");

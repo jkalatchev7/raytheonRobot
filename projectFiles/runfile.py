@@ -54,7 +54,7 @@ def safe_exit(signum, frame):
 
 try:
     ser = serial.Serial(  # set parameters, in fact use your own :-)
-        port='/dev/ttyACM0', baudrate=9600,
+        port='/dev/ttyACM1', baudrate=9600,
         bytesize=serial.SEVENBITS,
         parity=serial.PARITY_EVEN,
         stopbits=serial.STOPBITS_ONE,
@@ -135,12 +135,12 @@ def turnTo(angle):
 def moveAmount(dist):
     hold.turning = False
     curr = hold.dist_gone
-    print(str(curr))
+
     distToGo = dist
     sendToArduino(6, 0)
         
     while (hold.dist_gone < (curr + distToGo)):
-        print(hold.dist[-1])
+        print(arduinoRead())
         labelA['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
         labelA.pack()
         root.update()
@@ -285,9 +285,13 @@ while 1:
         # Look for peg
         nextState = "shootAtPeg"
     elif state == "testTurn":
-        turnTo(60)
+        #sendToArduino(5,0)
         time.sleep(1)
-        moveAmount(.5)
+        moveAmount(1)
+        wait_for_done()
+        turnTo(180)
+        time.sleep(1)
+
         nextState = "over"
     
     elif state == "testForw":
