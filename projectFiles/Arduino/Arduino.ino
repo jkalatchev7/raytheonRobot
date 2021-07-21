@@ -22,7 +22,7 @@ void setup() {
   holderServo.attach(13);
   pinMode(LED_BUILTIN, OUTPUT);
   myservo.write(0);
-  holderServo.write(-40);
+  holderServo.write(0);
   pinMode(A4, INPUT);
   pinMode(A5, OUTPUT);
 
@@ -62,43 +62,52 @@ void serialTranslate() {
 
 
 
-      myservo.write(180);              
+      myservo.write(90);              
       delay(1000); 
 
       forwardMotors(240);
       delay (100);
  
       bool card = false;  
-while (card == false){
+      while (card == false){
  
-      float leftDistance = Distance_test();
+        float leftDistance = Distance_test();
       
-     if (leftDistance <=50){
-        delay(500);
-        stopMotors();
-       
-        Serial.print("done");
-
-        
+        if (leftDistance <=50){
+          delay(500);
+          stopMotors();
+          card == true;
+          break;
+          
+        }
+       else if (leftDistance > 50) { 
+          forwardMotors(240);
+       }
       }
-       else if (leftDistance > 50) {
-        
-        forwardMotors(240);
-      }
-
+      Serial.println("done");
      
-}
+} else if (action == "seqb") {
+    myservo.write(0);
+    delay(200);
+    int middleDistance = Distance_test();
+    while (middleDistance >= 20) {
+      Serial.println(String(middleDistance));
+      delay(50);
+      forwardMotors(175);
+      middleDistance = Distance_test();
+    }
+    Serial.println("throwBall");
 
-//    myservo.write(120);
+    stopMotors();
+    
+ 
+
+
+//    
 //    delay(200);
 //    int middleDistance = Distance_test();
 //    Serial.println("move");
-//    while (middleDistance >= 20) {
-//      Serial.println(String(middleDistance));
-//      delay(50);
-//      forwardMotors(175);
-//      middleDistance = Distance_test();
-//    }
+//    
 //    stopMotors();
 //    Serial.println("turn");
 //    delay(600);
@@ -188,7 +197,7 @@ void irTranslate() {
       break;
     case 21:
       Serial.println("Down");
-      myservo.write(120);
+      myservo.write(90);
       break;
     case 64:
       Serial.println("picture");
@@ -258,6 +267,8 @@ void irTranslate() {
       break;
     case 90:
       Serial.println("9");
+      myservo.write(10);
+      delay(500);
       myservo.write(0);
       break;
     case 82:

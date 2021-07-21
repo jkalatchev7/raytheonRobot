@@ -34,7 +34,7 @@ void stopMotors() {
 
 void forwardMotors(int speed, int dis) {
   analogWrite(enA, speed);
-  analogWrite(enB, speed-30);
+  analogWrite(enB, speed);
   // Turn on motor A & B
   
   digitalWrite(in1, HIGH);
@@ -46,8 +46,8 @@ void forwardMotors(int speed, int dis) {
 }
 
 void forwardMotors(int speed) {
-  analogWrite(enA, speed + 25);
-  analogWrite(enB, speed - 25);
+  analogWrite(enA, speed + 15);
+  analogWrite(enB, speed - 15);
   // Turn on motor A & B
   
   digitalWrite(in1, HIGH);

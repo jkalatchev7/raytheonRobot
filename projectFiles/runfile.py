@@ -89,7 +89,10 @@ def sendToArduino(a, b):
         strr = "turn " + str(int(b))
 
     elif (a == 2):
-        strr = "sequ "
+        if (b == 0):
+            strr = "sequ "
+        else:
+                strr = "seqb "
 
     elif (a == 3):
         strr = "coll "
@@ -121,7 +124,7 @@ def turnTo(angle):
     else:
         sendToArduino(4, 1)
         
-    while (round(hold.angleZ) > (angle + 4) or round(hold.angleZ) < (angle - 4)):
+    while (round(hold.angleZ) > (angle + 1) or round(hold.angleZ) < (angle - 1)):
         labelA['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
         labelA.pack()
         root.update()
@@ -287,10 +290,17 @@ while 1:
     elif state == "testTurn":
         #sendToArduino(5,0)
         time.sleep(1)
-        moveAmount(1)
+        
+        #moveAmount(1)
+        sendToArduino(2, 0)
         wait_for_done()
         turnTo(180)
         time.sleep(1)
+        sendToArduino(2, 1)
+        wait_for_done()
+        time.sleep(1)
+        turnTo(90)
+        wait_for_done()
 
         nextState = "over"
     

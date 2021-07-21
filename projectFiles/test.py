@@ -16,8 +16,8 @@ def ball_search():
     start = datetime.now()
     img = frame
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    l_b = np.array([51, 75,26])
-    u_b = np.array([83, 255, 247])
+    l_b = np.array([0, 0,243])
+    u_b = np.array([43, 230, 255])
     mask = cv2.inRange(hsv, l_b, u_b)
     cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
                             cv2.CHAIN_APPROX_SIMPLE)
@@ -79,5 +79,5 @@ def hoop_pic():
 #     time.sleep(2)
 #     take_pic()
 # ar = ball_search()
-#print(ar)
+# print(ar)
 #serialTestA.sendToArduino(0,ar[1],ar[3])
