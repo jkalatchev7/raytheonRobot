@@ -1,5 +1,6 @@
 import threading
-import tkinter
+import tkinter as tk
+from tkinter import *
 from random import randint
 
 import test
@@ -11,19 +12,63 @@ from rpi_lcd import LCD
 
 import matplotlib.pyplot as plt
 from accelerometer import imu
+window = tk.Tk()
+window.title("Robot Croquet GUI")
+window.configure(background = 'light green')
+width= window.winfo_screenwidth() 
+height= window.winfo_screenheight() - 20
+#setting tkinter window size
+window.geometry("%dx%d" % (width, height))
 
-root = tkinter.Tk()
-root.title("Robot Visual")
-label = tkinter.Label(root, text="hello world")
-labelA = tkinter.Label(root, text= "temp")
-root.geometry("300x500")
+def make_label(master, x, y, h, w, *args, **kwargs):
+    f = Frame(master, height=h, width=w)
+    f.pack_propagate(0) # don't shrink
+    f.place(x=x, y=y)
+    label = Label(f, *args, **kwargs, font=("Arial", 20))
+    label.pack(fill=BOTH, expand=1)
+    return label
 
-canv = tkinter.Canvas(root, height=400, width=200, bg="green")
-robot = canv.create_image(10,10, image=tkinter.PhotoImage(file='accelerometer/robot.png'))
-label.pack()
-labelA.pack()
-canv.pack()
-root.update()
+
+#create intial map
+cHeight = height * .045
+cwidth = cHeight * 1
+outside = make_label(window, height * 0.05 - 5, height * 0.05 - 5, height * 0.9 + 10, height * .45 + 10, background='black')
+inside = make_label(window, height * 0.05, height * 0.05, height * 0.9, height * .45, background='light green')
+hoop2 = make_label(window, height * (0.05 + .045 * 23/ 12), height * (0.05 + .045 * 50/ 12), cHeight, cwidth, text='2', background='red')
+hoop3 = make_label(window, height * (0.45 - .045 * 23 /12), height * (0.05 + .045 * 50/ 12), cHeight, cwidth, text='3', background='red')
+hoop6 = make_label(window, height * 0.25, height * (0.05 + .045 * 81/ 12), cHeight, cwidth, text='6', background='red')
+peg = make_label(window, height * 0.25, height * 0.5, cHeight, cwidth, text='peg', background='light blue')
+hoop5 = make_label(window, height * 0.25, height * (0.95 - .045 * 81/ 12), cHeight, cwidth, text='5', background='red')
+hoop1 = make_label(window, height * (0.05 + .045 * 23/ 12), height * (0.95 - .045 * 50/ 12), cHeight, cwidth, text='1', background='red')
+hoop4 = make_label(window, height * (0.45 - .045 * 23/12), height * (0.95 - .045 * 50/ 12), cHeight, cwidth, text='4', background='red')
+
+#array for hoops
+
+hoop_arr = [hoop1, hoop2, hoop3, hoop4, hoop5, hoop6, peg]
+
+blue = make_label(window, 250, 1300, 70, 70, background='blue')
+red = make_label(window, 450, 1300, 70, 70, background='red')
+
+yellow = make_label(window, 650, 1300, 70, 70, background='yellow')
+# black1 = make_label(window, 70, height * 0.05, 5, height * 0.45, background='red')
+# black2 = make_label(window, 70, height * .95, 5, height * 0.45, background='black')
+# black3 = make_label(window, 70, height * 0.05, height * 0.9, 5, background='black')
+# black4 = make_label(window, 959, 110, height * 0.9, 5, background='black')
+#    
+current_command = make_label(window, 1010, 110, 50, 700, text = "Current Command: ", background = "white")
+current_state = make_label(window, 1010, 220, 50, 700, text = "Current state: ", background = "white")
+current_position = make_label(window, 1010, 320, 50, 700, text = "Current Position: ", background = "white")
+
+pic = PhotoImage(file = 'bot.png')
+bot_img = Label(image = pic)
+bot_img.pack()
+bot_img.place(width = cHeight * .5, height = cHeight * .88, x = 650, y = 500) 
+
+#to update the image of the bot in real time change the x and y fields in a while loop 
+
+#we can add the matlab plots, just will require extra code see links on how to do that 
+
+
 state = ""
 nextState = "testTurn"
 startHoop = 1
@@ -36,6 +81,7 @@ pin = [5, 10]
 
 
 def wait_for_done():
+
     inp = arduinoRead()
     #canv.move(robot, 10, 0)
     #root.update()
@@ -54,7 +100,7 @@ def safe_exit(signum, frame):
 
 try:
     ser = serial.Serial(  # set parameters, in fact use your own :-)
-        port='/dev/ttyACM1', baudrate=9600,
+        port='/dev/ttyACM0', baudrate=9600,
         bytesize=serial.SEVENBITS,
         parity=serial.PARITY_EVEN,
         stopbits=serial.STOPBITS_ONE,
@@ -91,8 +137,10 @@ def sendToArduino(a, b):
     elif (a == 2):
         if (b == 0):
             strr = "sequ "
-        else:
-                strr = "seqb "
+        elif (b == 1):
+            strr = "seqb "
+        elif (b == 2):
+            strr = "seqc "
 
     elif (a == 3):
         strr = "coll "
@@ -110,6 +158,8 @@ def sendToArduino(a, b):
         strr = "forw"
 
     print("Sending Command: " + strr)
+    current_command['text'] = "Current Command: " + strr
+    window.update()
     ser.write(bytes(strr, 'utf-8'))
     ser.flush()
     
@@ -119,21 +169,20 @@ def arduinoRead():
 
 def turnTo(angle):
     hold.turning = True
+    print("Turning from " + str(hold.angleZ) +" to " + str(angle))
     if (hold.angleZ < angle):
         sendToArduino(4, 0)
     else:
         sendToArduino(4, 1)
         
     while (round(hold.angleZ) > (angle + 1) or round(hold.angleZ) < (angle - 1)):
-        labelA['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
-        labelA.pack()
-        root.update()
+        current_position['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
+        window.update()
         time.sleep(.01)
     sendToArduino(5, 0)
     time.sleep(.8)
-    labelA['text'] = str(round(hold.angleZ))
-    labelA.pack()
-    root.update()
+    current_position['text'] = str(round(hold.angleZ))
+    window.update()
 
 def moveAmount(dist):
     hold.turning = False
@@ -156,8 +205,8 @@ def moveAmount(dist):
 
 while 1:
     state = nextState
-    label['text'] = "State: " + nextState
-    root.update()
+    current_state['text'] = "State: " + nextState
+    window.update()
     
     #lcd.text(state, 2)
     print("Entering State: " + state)
@@ -299,9 +348,13 @@ while 1:
         sendToArduino(2, 1)
         wait_for_done()
         time.sleep(1)
-        turnTo(90)
+        turnTo(270)
+        time.sleep(1)
+        sendToArduino(2, 2)
         wait_for_done()
-
+        time.sleep(1)
+        turnTo(180)
+        time.sleep(1)
         nextState = "over"
     
     elif state == "testForw":

@@ -20,9 +20,9 @@ void setup() {
   initializeMotors();
   myservo.attach(3);
   holderServo.attach(13);
+  holderServo.write(10);
   pinMode(LED_BUILTIN, OUTPUT);
   myservo.write(0);
-  holderServo.write(0);
   pinMode(A4, INPUT);
   pinMode(A5, OUTPUT);
 
@@ -74,7 +74,7 @@ void serialTranslate() {
         float leftDistance = Distance_test();
       
         if (leftDistance <=50){
-          delay(500);
+          delay(300);
           stopMotors();
           card == true;
           break;
@@ -93,40 +93,40 @@ void serialTranslate() {
     while (middleDistance >= 20) {
       Serial.println(String(middleDistance));
       delay(50);
-      forwardMotors(175);
+      forwardMotors(255);
       middleDistance = Distance_test();
     }
+    
     Serial.println("throwBall");
 
     stopMotors();
-    
- 
-
-
-//    
-//    delay(200);
-//    int middleDistance = Distance_test();
-//    Serial.println("move");
-//    
-//    stopMotors();
-//    Serial.println("turn");
-//    delay(600);
-//    turnBot(100);
-//    Serial.println("move");
-//    delay(600);
-//    forwardMotors(255, 20);
-//    Serial.println("turn");
-//    delay(600);
-//    turnBot(-100);
-//    Serial.println("move");
-//    delay(600);
-//    forwardMotors(255, 20);
-//    Serial.println("turn");
-//    delay(600);
-//    turnBot(-100);
-
-    
+    holderServo.write(25);
     Serial.println("done");
+} else if (action == "seqc") { 
+    myservo.write(180);              
+    delay(1000); 
+    bool Nothing = false;  
+while (Nothing == false){
+ 
+      leftDistance = Distance_test();
+      
+     if (leftDistance > 40){
+        delay(500);
+        stopMotors();
+       
+        Serial.print("done");
+        Nothing = true        
+      }
+       else if (leftDistance <= 40) {
+        
+        forwardMotors(255);
+      }
+
+
+
+
+    
+
   } else if (action == "coll") {
     analogValue = analogRead(A3);
     voltage = analogValue * (5.0 / 1024.0);
@@ -150,6 +150,7 @@ void serialTranslate() {
     }
 
     stopMotors();
+    Serial.println("done");
   } else if (action == "forw") {
     forwardMotors(200);
     while (Serial.available() == 0) {
@@ -231,9 +232,18 @@ void irTranslate() {
       break;
     case 12:
       Serial.println("4");
+      holderServo.write(110);
       break;
     case 24:
       Serial.println("5");
+      forwardMotors(240);
+      delay(500);
+      holderServo.write(25);
+      stopMotors();
+      delay(500);
+ 
+      holderServo.write(10);
+      
       Serial.println("done");
       break;
     case 94:

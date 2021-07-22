@@ -46,8 +46,8 @@ void forwardMotors(int speed, int dis) {
 }
 
 void forwardMotors(int speed) {
-  analogWrite(enA, speed + 15);
-  analogWrite(enB, speed - 15);
+  analogWrite(enA, speed);
+  analogWrite(enB, speed);
   // Turn on motor A & B
   
   digitalWrite(in1, HIGH);
@@ -93,8 +93,8 @@ void turnBot(int angle) {
 }
 
 void turnBotB(bool a) {
-  analogWrite(enA, 150);
-  analogWrite(enB, 150);
+  analogWrite(enA, 250);
+  analogWrite(enB, 250);
 
   if (a) {
     digitalWrite(in1, HIGH);
