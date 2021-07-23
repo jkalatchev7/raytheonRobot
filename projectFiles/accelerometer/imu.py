@@ -169,7 +169,8 @@ class imu:
                     holder = 0
                 if abs(holderB) < 10:
                     holderB = 0
-                    
+                
+                holderB = holderB / 10
                 acc.append(holder)
                 alpha.append(holderB)
                 

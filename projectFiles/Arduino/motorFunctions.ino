@@ -71,8 +71,8 @@ void reverseMotors(int speed, int dis) {
 
 void turnBot(int angle) {
   Serial.println("Turning motors");
-  analogWrite(enA, 200);
-  analogWrite(enB, 200);
+  analogWrite(enA, 100);
+  analogWrite(enB, 100);
 
   if (angle < 0) {
 
@@ -93,8 +93,8 @@ void turnBot(int angle) {
 }
 
 void turnBotB(bool a) {
-  analogWrite(enA, 250);
-  analogWrite(enB, 250);
+  analogWrite(enA, 150);
+  analogWrite(enB, 150);
 
   if (a) {
     digitalWrite(in1, HIGH);

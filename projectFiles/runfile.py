@@ -2,7 +2,6 @@ import threading
 import tkinter as tk
 from tkinter import *
 from random import randint
-
 import test
 import serial
 import io
@@ -19,6 +18,8 @@ width= window.winfo_screenwidth()
 height= window.winfo_screenheight() - 20
 #setting tkinter window size
 window.geometry("%dx%d" % (width, height))
+
+print("geometry set")
 
 def make_label(master, x, y, h, w, *args, **kwargs):
     f = Frame(master, height=h, width=w)
@@ -55,27 +56,30 @@ yellow = make_label(window, 650, 1300, 70, 70, background='yellow')
 # black3 = make_label(window, 70, height * 0.05, height * 0.9, 5, background='black')
 # black4 = make_label(window, 959, 110, height * 0.9, 5, background='black')
 #    
-current_command = make_label(window, 1010, 110, 50, 700, text = "Current Command: ", background = "white")
-current_state = make_label(window, 1010, 220, 50, 700, text = "Current state: ", background = "white")
-current_position = make_label(window, 1010, 320, 50, 700, text = "Current Position: ", background = "white")
+current_action = make_label(window, 1010, 120, 50, 700, text = "Current Actions: ", background = "red")
+current_command = make_label(window, 1010, 220, 50, 700, text = "Current Command: ", background = "white")
+current_state = make_label(window, 1010, 320, 50, 700, text = "Current state: ", background = "white")
+current_position = make_label(window, 1010, 420, 50, 700, text = "Current Position: ", background = "white")
+print("labels Made")
 
-pic = PhotoImage(file = 'bot.png')
-bot_img = Label(image = pic)
-bot_img.pack()
-bot_img.place(width = cHeight * .5, height = cHeight * .88, x = 650, y = 500) 
 
+
+ball_img = Label(text = "Ball Image...")
+ball_img.pack()
+ball_img.place(width = 320, height = 180, x = 1010, y = 500)
+
+window.update()
 #to update the image of the bot in real time change the x and y fields in a while loop 
 
 #we can add the matlab plots, just will require extra code see links on how to do that 
 
 
 state = ""
-nextState = "testTurn"
+nextState = "BallSearch"
 startHoop = 1
 passStart = False
 nextHoop = 1
-hoops = [[3., 1., 90], [3., 15., 90], [7., 19., -90], [7., 5., -90], [5., 5., 90], [5., 15., -90]]
-pin = [5, 10]
+
 # lcd = LCD()
 # lcd.clear()
 
@@ -86,7 +90,9 @@ def wait_for_done():
     #canv.move(robot, 10, 0)
     #root.update()
     while (inp != 'done'):
-        print(inp)
+
+        current_position['text'] = "Current Angle: " + str(hold.angleZ)
+        window.update()
         inp = arduinoRead()
 
 def safe_exit(signum, frame):
@@ -99,6 +105,8 @@ def safe_exit(signum, frame):
 # lcd.text(state, 2)
 
 try:
+    current_action['text'] = "Opening Port..."
+    window.update()
     ser = serial.Serial(  # set parameters, in fact use your own :-)
         port='/dev/ttyACM0', baudrate=9600,
         bytesize=serial.SEVENBITS,
@@ -116,8 +124,22 @@ except IOError:  # if port is already opened, close it and open it again and pri
     ser.close()
     ser.open()
     print("port was already open, was closed and opened again!")
+
+current_action['text'] = "Initializing IMU..."
+window.update()
 hold = imu.imu(7, 0, 90)
 hold.initialize()
+pic = PhotoImage(file = 'bot.png')
+bot_img = Label(image = pic)
+bot_img.pack()
+xL = (height * (0.05 + 0.045 * hold.posX) - 25)
+print(height)
+yL = height * (.95 - .045 * hold.posY) - 33
+print(xL)
+print(yL)
+bot_img.place(width = 50, height = 67, x = xL , y = yL) 
+current_action['text'] = "Calibrating IMU..."
+window.update()
 hold.calibrate()
 
 x = threading.Thread(target=hold.update, args=[0])
@@ -137,13 +159,18 @@ def sendToArduino(a, b):
     elif (a == 2):
         if (b == 0):
             strr = "sequ "
+            current_action['text'] = "Lining up with hoop"
         elif (b == 1):
             strr = "seqb "
+            current_action['text'] = "Approaching Hoop and Deploying Ball"
+
         elif (b == 2):
             strr = "seqc "
+            current_action['text'] = "Moving Past Hoop"
 
     elif (a == 3):
         strr = "coll "
+        current_action['text'] = "Collecting Ball"
 
     elif (a == 4):
         if (b == 0):
@@ -170,6 +197,7 @@ def arduinoRead():
 def turnTo(angle):
     hold.turning = True
     print("Turning from " + str(hold.angleZ) +" to " + str(angle))
+    current_action['text'] = "Turning from " + str(hold.angleZ) +" to " + str(angle)
     if (hold.angleZ < angle):
         sendToArduino(4, 0)
     else:
@@ -212,35 +240,34 @@ while 1:
     print("Entering State: " + state)
     if state == "BallSearch":
         print("Searching for ball...")
+        current_action['text'] = "Taking Picture..."
+        window.update()
         ar = test.ball_search()
-        while (ar == None):
-            print("none found")
-            hold.turning = True
-            sendToArduino(1, 40)
-            wait_for_done()
-            ar = test.ball_search()
+        current_action['text'] = "Approaching Ball..."
+        ball = PhotoImage(file = 'result.png')
+#         ball = ball.zoom(0.5, 0.5) #with 250, I ended up running out of memory
+        ball = ball.subsample(4)
+        ball_img['image'] = ball
+        window.update()
+#         while (ar == None):
+#             print("none found")
+#             hold.turning = True
+#             sendToArduino(1, 40)
+#             wait_for_done()
+#             ar = test.ball_search()
         # sends turn command and waits until turning is finished
-        sendToArduino(1, ar[3])
-        wait_for_done()
-
+        print(ar)
+        hold.turning = True
+        turnTo(hold.angleZ + int(ar[2] - 1))
+        time.sleep(1)
+        
         # sends move command and waits until moving is complete
         hold.turning = False
-        sendToArduino(0, ar[1])
+        sendToArduino(3, 0)
+        time.sleep(.5)
         wait_for_done()
         # sends command to recover ball
-        hold.turning = True
-        sendToArduino(3, 0)
-        inp = arduinoRead()
-        while inp != "done":
-            print(inp)
-            time.sleep(.01)
-            if inp == 'turn':
-                hold.turning = True
-                print("Arduino -> turning")
-            if inp == 'move':
-                hold.turning = False
-                print("Arduino -> moving forward")
-            inp = arduinoRead()
+
         print("Ball Recovered")
         nextState = "getInFrontOfHoop"
 
@@ -266,43 +293,16 @@ while 1:
             continue
         
         else:
-            if hoop == startHoop:
-                passStart = True
-            curr = [hold.posX, hold.posY, hold.angleZ]
-            nextH = hoops[hoop - 1]
-            print(nextH)
-            print(curr)
             hold.turning = True
-            if (curr[0] < nextH[0]):
-                sendToArduino(1, -1 * curr[2])
-                #face right
-            elif(curr[0] > nextH[0]):
-                sendToArduino(1, 180 - curr[2])
+            turnTo(90)
                 #face left
             #turn go horizontally
-            wait_for_done()
+            
+            
+            
+            print("done")
 
-            #now we move horizontally
-            hold.turning = False
-            sendToArduino(0, abs(hold.posX - nextH[0]))
-            wait_for_done()
-            hold.turning = True
-            if (hold.posY > nextH[1]):
-                sendToArduino(1, 270 - hold.angleZ)
-                wait_for_done()
-            else:
-                sendToArduino(1, 90 - hold.angleZ)
-                wait_for_done()
-
-            hold.turning = False
-            sendToArduino(0, abs(hold.posY - nextH[1]))
-            wait_for_done()
-            hold.turning = True
-            sendToArduino(1, nextH[2] - hold.angleZ)
-            wait_for_done()
-            print("finished")
-
-            nextState = "VerifyNumber"
+            nextState = "testTurn"
 
     elif state == "VerifyNumber":
         print("Taking picture... ")
@@ -341,18 +341,25 @@ while 1:
         time.sleep(1)
         
         #moveAmount(1)
+        hold.turning = False
         sendToArduino(2, 0)
         wait_for_done()
+        hold.turning = True
         turnTo(180)
         time.sleep(1)
+        hold.turning = False
         sendToArduino(2, 1)
         wait_for_done()
+        hoop_arr[nextHoop]['background'] = "green"
+        hold.turning = True
         time.sleep(1)
         turnTo(270)
         time.sleep(1)
+        hold.turning = False
         sendToArduino(2, 2)
         wait_for_done()
         time.sleep(1)
+        hold.turning = True
         turnTo(180)
         time.sleep(1)
         nextState = "over"

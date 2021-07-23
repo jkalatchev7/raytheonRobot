@@ -15,54 +15,42 @@ def ball_search():
     cv2.imwrite('preresult.jpg', frame)
     start = datetime.now()
     img = frame
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    l_b = np.array([0, 0,243])
-    u_b = np.array([43, 230, 255])
-    mask = cv2.inRange(hsv, l_b, u_b)
-    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
-                            cv2.CHAIN_APPROX_SIMPLE)
-    cnts = imutils.grab_contours(cnts)
-    center = None
-    if len(cnts) > 0:
+    frame[1:325, :, :] = 0
+    frame = cv2.GaussianBlur(frame, (11, 11), 0)
+    l_b = np.array([0, 28, 23])
+    u_b = np.array([255, 255, 255])
+    
+    mask = cv2.inRange(frame, l_b, u_b)
 
-        # find the largest contour in the mask, then use
-        # it to compute the minimum enclosing circle and
-        # centroid
-        c = max(cnts, key=cv2.contourArea)
-        ((x, y), radius) = cv2.minEnclosingCircle(c)
-        M = cv2.moments(c)
-        if M["m00"] == 0:
-            return None
-        center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-        dis = 5.155692 + (38672870 - 5.155692) / ((1 + radius / 0.0003913803) ** 1.197)
+    tracking = cv2.bitwise_and(frame, frame, mask=mask)
+    mask = cv2.erode(tracking, None, iterations=20)
+    mask = cv2.dilate(mask, None, iterations=20)
+    cv2.imwrite('mask.jpg', mask)
+    circles = cv2.HoughCircles(cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY), cv2.HOUGH_GRADIENT, 2, 120, param1=120, param2=50, minRadius=10, maxRadius=0)
+    for i in circles:
+        #cv2.circle(img, (5, 10), 20, (0, 255, 0), 5)
+        img = cv2.imread('preresult.jpg')
+        cv2.circle(img, (int(i[0][0]), int(i[0][1])), int(i[0][2]), (0, 255, 0), 5)
+        dist = 4.155692 + (38672870 - 4.155692) / ((1 + i[0][2] / 0.0003913803) ** 1.197)
+        #print("Image 1 dist: " + str(dist))
 
-        #print("Image 1 distance: " + str(dis))
-        # only proceed if the radius meets a minimum size
-        if radius > 30:
-            # draw the circle and centroid on the frame,
-            # then update the list of tracked points
-            cv2.circle(img, (int(x), int(y)), int(radius),
-                       (0, 255, 255), 2)
-            cv2.circle(img, center, 5, (0, 0, 255), -1)
-            cv2.line(img, (640, int(y)), (int(x), int(y)), (0, 0, 0))
-            # pts.appendleft(center)
-            t  = datetime.now() - start
-            arr = [radius, dis, int(x)-640, (int(x)-640) / (dis**.1) / 17.7]
-            cv2.imwrite('result.jpg' , img)
-            return arr
-        if PRINT:
-            print("Image 1:")
-            print((int(x), int(y)))
-            print(radius)
-            print((int(x) - 640) / (dis))
+    angle = (int(i[0][0])-640) / (dist**.1) / 17.7 * -1
+    arr = (i[0][2], dist, angle)
+    cv2.line(img, (640, int(i[0][1])), (int(i[0][0]), int(i[0][1])), (0, 0, 0))
+    cv2.imwrite('result.png', img)
+    return arr
+    
+    
 def take_pic():
     cap = cv2.VideoCapture(-1)
     cap.set(3, 1280)
     cap.set(4, 720)
     _, frame = cap.read()
+    frame[1:325, :, :] = 0
     date_string = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
-    name = "practicePics/" + date_string + ".jpg"
+    name = date_string + ".jpg"
     cv2.imwrite(name, frame)
+    cap.release()
 
 def hoop_pic():
     cap = cv2.VideoCapture(-1)
@@ -72,12 +60,3 @@ def hoop_pic():
     name = "hoopPic.png"
     cv2.imwrite(name, frame)
 
-# time.sleep(5)
-# print("Starting")
-# for i in range(1, 10):
-#     print("taking Pic")
-#     time.sleep(2)
-#     take_pic()
-# ar = ball_search()
-# print(ar)
-#serialTestA.sendToArduino(0,ar[1],ar[3])

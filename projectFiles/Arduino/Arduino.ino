@@ -20,9 +20,9 @@ void setup() {
   initializeMotors();
   myservo.attach(3);
   holderServo.attach(13);
-  holderServo.write(10);
+  holderServo.write(20);
   pinMode(LED_BUILTIN, OUTPUT);
-  myservo.write(0);
+  myservo.write(90);
   pinMode(A4, INPUT);
   pinMode(A5, OUTPUT);
 
@@ -62,7 +62,7 @@ void serialTranslate() {
 
 
 
-      myservo.write(90);              
+      myservo.write(180);              
       delay(1000); 
 
       forwardMotors(240);
@@ -87,7 +87,7 @@ void serialTranslate() {
       Serial.println("done");
      
 } else if (action == "seqb") {
-    myservo.write(0);
+    myservo.write(90);
     delay(200);
     int middleDistance = Distance_test();
     while (middleDistance >= 20) {
@@ -100,42 +100,52 @@ void serialTranslate() {
     Serial.println("throwBall");
 
     stopMotors();
-    holderServo.write(25);
+    holderServo.write(35);
+    delay(500);
+    holderServo.write(20);
     Serial.println("done");
 } else if (action == "seqc") { 
-    myservo.write(180);              
+    myservo.write(0);              
     delay(1000); 
     bool Nothing = false;  
 while (Nothing == false){
  
-      leftDistance = Distance_test();
+      float leftDistance = Distance_test();
       
      if (leftDistance > 40){
         delay(500);
         stopMotors();
        
-        Serial.print("done");
-        Nothing = true        
+        Serial.println("done");
+        Nothing = true;        
       }
        else if (leftDistance <= 40) {
         
         forwardMotors(255);
       }
 
-
+  }
 
 
     
 
   } else if (action == "coll") {
     analogValue = analogRead(A3);
+    Serial.println("collecting");
+    holderServo.write(20);
     voltage = analogValue * (5.0 / 1024.0);
     while (voltage > 0.5){
-      forwardMotors(100);
+      analogValue = analogRead(A3);
+      voltage = analogValue * (5.0 / 1024.0);
+      forwardMotors(150);
+      
     }
+    delay(200);
+    holderServo.write(110);
+    delay(100);
     stopMotors();
-    holderServo.write(90);
-    Serial.println("collected");
+    
+    Serial.println("done");
   } else if (action == "turR") {
     turnBotB(true);
     while (Serial.available() == 0) {
@@ -232,17 +242,21 @@ void irTranslate() {
       break;
     case 12:
       Serial.println("4");
+      holderServo.write(45);
+      delay(100);
+      holderServo.write(75);
+      delay(100);
       holderServo.write(110);
       break;
     case 24:
       Serial.println("5");
-      forwardMotors(240);
-      delay(500);
-      holderServo.write(25);
+      forwardMotors(255);
+      delay(700);
+      holderServo.write(35);
       stopMotors();
       delay(500);
  
-      holderServo.write(10);
+      holderServo.write(20);
       
       Serial.println("done");
       break;
