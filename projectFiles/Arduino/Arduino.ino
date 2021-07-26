@@ -62,7 +62,7 @@ void serialTranslate() {
 
 
 
-      myservo.write(180);              
+      myservo.write(250);              
       delay(1000); 
 
       forwardMotors(240);
@@ -74,7 +74,7 @@ void serialTranslate() {
         float leftDistance = Distance_test();
       
         if (leftDistance <=50){
-          delay(300);
+          delay(500);
           stopMotors();
           card == true;
           break;
@@ -102,10 +102,10 @@ void serialTranslate() {
     stopMotors();
     holderServo.write(35);
     delay(500);
-    holderServo.write(20);
+    holderServo.write(110);
     Serial.println("done");
 } else if (action == "seqc") { 
-    myservo.write(0);              
+    myservo.write(-10);              
     delay(1000); 
     bool Nothing = false;  
 while (Nothing == false){
@@ -144,7 +144,7 @@ while (Nothing == false){
     holderServo.write(110);
     delay(100);
     stopMotors();
-    
+    delay(100);
     Serial.println("done");
   } else if (action == "turR") {
     turnBotB(true);
@@ -153,6 +153,7 @@ while (Nothing == false){
     }
 
     stopMotors();
+    Serial.println("done");
   } else if (action == "turL") {
     turnBotB(false);
     while (Serial.available() == 0) {
@@ -160,6 +161,7 @@ while (Nothing == false){
     }
 
     stopMotors();
+    delay(100);
     Serial.println("done");
   } else if (action == "forw") {
     forwardMotors(200);
@@ -317,7 +319,7 @@ void loop() {
     //Serial.println(IrReceiver.decodedIRData.command);
     receiver.resume();
   } else {
-    Serial.println("Nothing");
+   
     //Serial.println(String(Distance_test()));
     delay(100);
   }

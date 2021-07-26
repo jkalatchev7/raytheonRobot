@@ -83,27 +83,6 @@ nextHoop = 1
 # lcd = LCD()
 # lcd.clear()
 
-
-def wait_for_done():
-
-    inp = arduinoRead()
-    #canv.move(robot, 10, 0)
-    #root.update()
-    while (inp != 'done'):
-
-        current_position['text'] = "Current Angle: " + str(hold.angleZ)
-        window.update()
-        inp = arduinoRead()
-
-def safe_exit(signum, frame):
-    exit(1)
-
-
-# signal(SIGTERM, safe_exit)
-# signal(SIGHUP, safe_exit)
-# lcd.text("State:", 1)
-# lcd.text(state, 2)
-
 try:
     current_action['text'] = "Opening Port..."
     window.update()
@@ -125,9 +104,31 @@ except IOError:  # if port is already opened, close it and open it again and pri
     ser.open()
     print("port was already open, was closed and opened again!")
 
+def wait_for_done():
+
+    inp = arduinoRead()
+    #canv.move(robot, 10, 0)
+    #root.update()
+    while (inp != 'done'):
+        print(inp)
+        current_position['text'] = "Current Angle: " + str(hold.angleZ)
+        window.update()
+        inp = arduinoRead()
+
+def safe_exit(signum, frame):
+    exit(1)
+
+
+# signal(SIGTERM, safe_exit)
+# signal(SIGHUP, safe_exit)
+# lcd.text("State:", 1)
+# lcd.text(state, 2)
+
+
+
 current_action['text'] = "Initializing IMU..."
 window.update()
-hold = imu.imu(7, 0, 90)
+hold = imu.imu(7, 20, 270)
 hold.initialize()
 pic = PhotoImage(file = 'bot.png')
 bot_img = Label(image = pic)
@@ -145,13 +146,12 @@ hold.calibrate()
 x = threading.Thread(target=hold.update, args=[0])
 x.start()
 time.sleep(.1)
-ser.flushInput()
 
 
 def sendToArduino(a, b):
     strr = ""
     if (a == 0):
-        strr = "move " + str(float(b))
+        strr = "move " + str(int(b))
 
     elif (a == 1):
         strr = "turn " + str(int(b))
@@ -235,6 +235,9 @@ while 1:
     state = nextState
     current_state['text'] = "State: " + nextState
     window.update()
+    while(ser.in_waiting > 0):
+        ser.readline()
+    time.sleep(1)
     
     #lcd.text(state, 2)
     print("Entering State: " + state)
@@ -294,14 +297,20 @@ while 1:
         
         else:
             hold.turning = True
-            turnTo(90)
-                #face left
+            turnTo(300)
+            hold.turning = False
+            time.sleep(1)
+            sendToArduino(0, 3)
+            wait_for_done()
+            hold.turning = True
+            time.sleep(1)
+            turnTo(180)
+            time.sleep(1)
+            #face left
             #turn go horizontally
             
             
             
-            print("done")
-
             nextState = "testTurn"
 
     elif state == "VerifyNumber":
@@ -345,7 +354,8 @@ while 1:
         sendToArduino(2, 0)
         wait_for_done()
         hold.turning = True
-        turnTo(180)
+        time.sleep(1)
+        turnTo(270)
         time.sleep(1)
         hold.turning = False
         sendToArduino(2, 1)
@@ -353,16 +363,21 @@ while 1:
         hoop_arr[nextHoop]['background'] = "green"
         hold.turning = True
         time.sleep(1)
-        turnTo(270)
+        turnTo(180)
         time.sleep(1)
         hold.turning = False
         sendToArduino(2, 2)
         wait_for_done()
         time.sleep(1)
         hold.turning = True
-        turnTo(180)
+        turnTo(270)
         time.sleep(1)
-        nextState = "over"
+        sendToArduino(0, 1.5)
+        time.sleep(1)
+        turnTo(0)
+        time.sleep(1)
+        
+        nextState = "BallSearch"
     
     elif state == "testForw":
         moveAmount(1.2)
