@@ -6,6 +6,7 @@ import test
 import serial
 import io
 import time
+from pynput.keyboard import Key, Listener
 from signal import signal, SIGTERM, SIGHUP, pause
 from rpi_lcd import LCD
 
@@ -19,7 +20,7 @@ height= window.winfo_screenheight() - 20
 #setting tkinter window size
 window.geometry("%dx%d" % (width, height))
 
-print("geometry set")
+print("Geometry set")
 
 def make_label(master, x, y, h, w, *args, **kwargs):
     f = Frame(master, height=h, width=w)
@@ -66,7 +67,10 @@ print("labels Made")
 
 ball_img = Label(text = "Ball Image...")
 ball_img.pack()
-ball_img.place(width = 320, height = 180, x = 1010, y = 500)
+ball_img.place(width = 640, height = 320, x = 1010, y = 500)
+hoop_num = Label(text = "Hoop Number...")
+hoop_num.pack()
+hoop_num.place(width = 112, height = 112, x = 810, y = 660)
 
 window.update()
 #to update the image of the bot in real time change the x and y fields in a while loop 
@@ -75,10 +79,10 @@ window.update()
 
 
 state = ""
-nextState = "BallSearch"
-startHoop = 1
+nextState = "getInFrontOfHoop"
+startHoop = 2
 passStart = False
-nextHoop = 1
+nextHoop = 2
 
 # lcd = LCD()
 # lcd.clear()
@@ -100,12 +104,47 @@ try:
     print("port is opened!")
 
 except IOError:  # if port is already opened, close it and open it again and print message
-    ser.close()
+
     ser.open()
     print("port was already open, was closed and opened again!")
 
-def wait_for_done():
+def empty_serial():
+    while ser.in_waiting > 0:
+        ser.readline()
 
+def on_press(key):
+
+    if (key == Key.left):
+        sendToArduino(4, 0)
+        current_action['text'] = "Manual Control: Turning Left"
+
+    elif (key == Key.right):
+        sendToArduino(4, 1)
+        current_action['text'] = "Manual Control: Turning Right"
+
+    elif (key == Key.up):
+        sendToArduino(6, 0)
+        current_action['text'] = "Manual Control: Moving Forward"
+
+    elif (key == Key.enter):
+        sendToArduino(5, 0)
+        current_action['text'] = "Manual Control: Stop"
+        print("enter")
+        #stop
+    elif (key == Key.esc):
+        current_action['text'] = "Exiting Manual Control..."
+        return False
+ 
+    print(key)
+    time.sleep(.2)
+    
+def activate():
+    with Listener(on_press=on_press) as listener:
+        listener.join()
+
+
+def wait_for_done():
+    print("waiting for done")
     inp = arduinoRead()
     #canv.move(robot, 10, 0)
     #root.update()
@@ -128,7 +167,7 @@ def safe_exit(signum, frame):
 
 current_action['text'] = "Initializing IMU..."
 window.update()
-hold = imu.imu(7, 20, 270)
+hold = imu.imu(3, 20, 270)
 hold.initialize()
 pic = PhotoImage(file = 'bot.png')
 bot_img = Label(image = pic)
@@ -169,7 +208,7 @@ def sendToArduino(a, b):
             current_action['text'] = "Moving Past Hoop"
 
     elif (a == 3):
-        strr = "coll "
+        strr = "coll "+ str(int(b))
         current_action['text'] = "Collecting Ball"
 
     elif (a == 4):
@@ -183,6 +222,13 @@ def sendToArduino(a, b):
         
     elif (a == 6):
         strr = "forw"
+    
+    elif (a == 7):
+        if (b == 0):
+            strr = "armU"
+        else:
+            strr = "armD"
+        
 
     print("Sending Command: " + strr)
     current_command['text'] = "Current Command: " + strr
@@ -203,14 +249,17 @@ def turnTo(angle):
     else:
         sendToArduino(4, 1)
         
-    while (round(hold.angleZ) > (angle + 1) or round(hold.angleZ) < (angle - 1)):
+    while (round(hold.angleZ) > (angle + 2) or round(hold.angleZ) < (angle - 2)):
         current_position['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
         window.update()
         time.sleep(.01)
     sendToArduino(5, 0)
+    print("stopped")
     time.sleep(.8)
+   
     current_position['text'] = str(round(hold.angleZ))
     window.update()
+
 
 def moveAmount(dist):
     hold.turning = False
@@ -231,14 +280,20 @@ def moveAmount(dist):
     labelA.pack()
     root.update()
 
+
+
+
+hoop_arr[startHoop - 1]['background'] = "yellow"
+sendToArduino(7, 0)
+time.sleep(1)
+
+
 while 1:
     state = nextState
     current_state['text'] = "State: " + nextState
     window.update()
-    while(ser.in_waiting > 0):
-        ser.readline()
     time.sleep(1)
-    
+    #empty_serial()
     #lcd.text(state, 2)
     print("Entering State: " + state)
     if state == "BallSearch":
@@ -248,17 +303,9 @@ while 1:
         ar = test.ball_search()
         current_action['text'] = "Approaching Ball..."
         ball = PhotoImage(file = 'result.png')
-#         ball = ball.zoom(0.5, 0.5) #with 250, I ended up running out of memory
-        ball = ball.subsample(4)
+        ball = ball.subsample(2)
         ball_img['image'] = ball
         window.update()
-#         while (ar == None):
-#             print("none found")
-#             hold.turning = True
-#             sendToArduino(1, 40)
-#             wait_for_done()
-#             ar = test.ball_search()
-        # sends turn command and waits until turning is finished
         print(ar)
         hold.turning = True
         turnTo(hold.angleZ + int(ar[2] - 1))
@@ -266,9 +313,10 @@ while 1:
         
         # sends move command and waits until moving is complete
         hold.turning = False
-        sendToArduino(3, 0)
-        time.sleep(.5)
-        wait_for_done()
+        #sendToArduino(3, 0)
+        sendToArduino(3, float(ar[1]/12))
+        time.sleep(5)
+        
         # sends command to recover ball
 
         print("Ball Recovered")
@@ -290,92 +338,96 @@ while 1:
 
     elif state == "getInFrontOfHoop":
         hoop = nextHoop
-        print("Going for Hoop #" + str(hoop))
         if hoop == startHoop and passStart:
             nextState = "pinSearch"
-            continue
-        
         else:
-            hold.turning = True
-            turnTo(300)
-            hold.turning = False
-            time.sleep(1)
-            sendToArduino(0, 3)
-            wait_for_done()
-            hold.turning = True
-            time.sleep(1)
-            turnTo(180)
-            time.sleep(1)
-            #face left
-            #turn go horizontally
+            print("Going for Hoop #" + str(hoop))
+            current_action['text'] = "Manual Control"
+        def key_pressed(event):
+            current_position['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
+            if (event.char == 'a'):
+                hold.turning  = True
+                sendToArduino(4, 0)
+            elif (event.char == 'd'):
+                hold.turning  = True
+                sendToArduino(4, 1)
+            elif (event.char == 'w'):
+                hold.turning  = False
+                sendToArduino(6, 0)
+            elif (event.char == 's'):
+                hold.turning  = True
+                sendToArduino(5, 0)
+            else:
+                window.quit()
+        window.bind('<Key>', key_pressed)
+
+#         window.bind('d', sendToArduino(4, 1))
+#         window.bind('w', sendToArduino(6, 0))
+#         window.bind('s', sendToArduino(5, 0))
+        window.mainloop()
+        time.sleep(1)
             
-            
-            
-            nextState = "testTurn"
+        nextState = "VerifyNumber"
 
     elif state == "VerifyNumber":
         print("Taking picture... ")
-        #test.hoop_pic()
+        current_action['text'] = "Taking Picture of Hoop..."
+        if (test.hoop_pic() == 1):
+            num = PhotoImage(file = 'number.png')
+            num = num.zoom(5)
+            hoop_num['image'] = num
+            window.update()
+        else:
+            current_action['text'] = "No Number Found!"
+        
         print("Picture Taken, Getting number...")
         # a  = numverification()
         # if a == nextHoop:
-        nextState = "over"
+        nextState = "Sequence"
         # else:
         # god knows
 
     elif state == "Sequence":
         # Get distance to flag
         # Activate motors until black crease
+        current_action['text'] = "Beginning Sequence..."
+        curr = nextHoop
         nextHoop = nextHoop % 6
         nextHoop += 1
-
-        sendToArduino(2, 0)
-        inp = arduinoRead()
-        print(inp)
-        while (inp != "done"):
-            if inp == 'turn':
-                hold.turning = True
-                print("Arduino -> turning")
-            if inp == 'move':
-                hold.turning = False
-                print("Aruino -> moving forward")
-            inp = arduinoRead()
-            print(inp)
-        nextState = "BallSearch"
-    elif state == "pegSearch":
-        # Look for peg
-        nextState = "shootAtPeg"
-    elif state == "testTurn":
-        #sendToArduino(5,0)
-        time.sleep(1)
         
-        #moveAmount(1)
-        hold.turning = False
-        sendToArduino(2, 0)
-        wait_for_done()
-        hold.turning = True
-        time.sleep(1)
-        turnTo(270)
-        time.sleep(1)
         hold.turning = False
         sendToArduino(2, 1)
-        wait_for_done()
-        hoop_arr[nextHoop]['background'] = "green"
+        time.sleep(5)
+        hoop_arr[curr - 1 ]['background'] = "green"
+        hoop_arr[nextHoop - 1]['background'] = "yellow"
         hold.turning = True
         time.sleep(1)
         turnTo(180)
         time.sleep(1)
         hold.turning = False
-        sendToArduino(2, 2)
-        wait_for_done()
-        time.sleep(1)
-        hold.turning = True
-        turnTo(270)
-        time.sleep(1)
         sendToArduino(0, 1.5)
+        current_action['text'] = "Moving past Hoop"
+        time.sleep(5)
+        hold.turning = True
+        turnTo(90)
         time.sleep(1)
+        sendToArduino(0, 2.5)
+        time.sleep(5)
         turnTo(0)
         time.sleep(1)
+        
+        
+        
+        nextState = "BallSearch"
+        
+        
+    elif state == "pegSearch":
+        # Look for peg
+        
+        nextState = "shocotAtPeg"
+    elif state == "testTurn":
+
+        
         
         nextState = "BallSearch"
     

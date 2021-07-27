@@ -103,6 +103,8 @@ void serialTranslate() {
     holderServo.write(35);
     delay(500);
     holderServo.write(110);
+    reverseMotors(255, 12);
+    holderServo.write(20);
     Serial.println("done");
 } else if (action == "seqc") { 
     myservo.write(-10);              
@@ -130,21 +132,11 @@ while (Nothing == false){
     
 
   } else if (action == "coll") {
-    analogValue = analogRead(A3);
-    Serial.println("collecting");
     holderServo.write(20);
-    voltage = analogValue * (5.0 / 1024.0);
-    while (voltage > 0.5){
-      analogValue = analogRead(A3);
-      voltage = analogValue * (5.0 / 1024.0);
-      forwardMotors(150);
-      
-    }
-    delay(200);
-    holderServo.write(110);
-    delay(100);
-    stopMotors();
-    delay(100);
+    float dis = r.substring(5).toFloat();
+    forwardMotors(200, int(dis * 15));
+    holderServo.write(113);
+    forwardMotors(200, 1);
     Serial.println("done");
   } else if (action == "turR") {
     turnBotB(true);
@@ -169,6 +161,11 @@ while (Nothing == false){
       Serial.print(Serial.available());
     } 
     stopMotors();
+  } else if (action == "armU") {
+    holderServo.write(115);
+    delay(200);
+  } else if (action == "armD") {
+    holderServo.write(35);
   }
   
   

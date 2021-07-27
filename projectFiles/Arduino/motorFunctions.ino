@@ -41,7 +41,8 @@ void forwardMotors(int speed, int dis) {
   digitalWrite(in2, LOW);
   digitalWrite(in3, HIGH);
   digitalWrite(in4, LOW);
-  delay(dis * 1000 / 25);
+  Serial.println(dis);
+  delay(dis * 1000 / 16);
   stopMotors();
 }
 
@@ -93,9 +94,8 @@ void turnBot(int angle) {
 }
 
 void turnBotB(bool a) {
-  analogWrite(enA, 150);
-  analogWrite(enB, 150);
-
+  analogWrite(enA, 220);
+  analogWrite(enB, 220);
   if (a) {
     digitalWrite(in1, HIGH);
     digitalWrite(in2, LOW);

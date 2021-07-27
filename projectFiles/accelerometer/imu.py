@@ -167,10 +167,10 @@ class imu:
                     
                 if abs(holder) < .35:
                     holder = 0
-                if abs(holderB) < 10:
+                if abs(holderB) < 8:
                     holderB = 0
                 
-                holderB = holderB / 5
+                holderB = holderB
                 acc.append(holder)
                 alpha.append(holderB)
                 
