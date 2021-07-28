@@ -125,6 +125,7 @@ class imu:
         while (True):
             holder = 0
             holderB = 0
+            self.angleZ = self.angleZ % 360
             if (self.turning):
 
                 for i in range(3):
@@ -160,7 +161,6 @@ class imu:
                     temp = temp - self.offsetX
                     tempB = tempB - self.offsetZ
                     temp = temp / 3
-                    temoB = tempB / 3 * -1
                     
                     holder += temp
                     holderB += tempB
@@ -170,7 +170,7 @@ class imu:
                 if abs(holderB) < 8:
                     holderB = 0
                 
-                holderB = holderB
+                holderB = holderB / 5
                 acc.append(holder)
                 alpha.append(holderB)
                 

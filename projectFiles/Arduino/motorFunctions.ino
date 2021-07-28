@@ -42,7 +42,7 @@ void forwardMotors(int speed, int dis) {
   digitalWrite(in3, HIGH);
   digitalWrite(in4, LOW);
   Serial.println(dis);
-  delay(dis * 1000 / 16);
+  delay(int(dis / 16 * 1000));
   stopMotors();
 }
 

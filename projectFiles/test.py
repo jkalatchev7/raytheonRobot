@@ -119,5 +119,5 @@ def hoop_pic():
     cv2.imwrite("number.png", mask2)
     return 1
     
-#hoop_pic()
+hoop_pic()
 

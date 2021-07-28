@@ -70,7 +70,7 @@ ball_img.pack()
 ball_img.place(width = 640, height = 320, x = 1010, y = 500)
 hoop_num = Label(text = "Hoop Number...")
 hoop_num.pack()
-hoop_num.place(width = 112, height = 112, x = 810, y = 660)
+hoop_num.place(width = 224, height = 224, x = 610, y = 548)
 
 window.update()
 #to update the image of the bot in real time change the x and y fields in a while loop 
@@ -208,7 +208,7 @@ def sendToArduino(a, b):
             current_action['text'] = "Moving Past Hoop"
 
     elif (a == 3):
-        strr = "coll "+ str(int(b))
+        strr = "coll "+ str(round(b, 2))
         current_action['text'] = "Collecting Ball"
 
     elif (a == 4):
@@ -344,7 +344,7 @@ while 1:
             print("Going for Hoop #" + str(hoop))
             current_action['text'] = "Manual Control"
         def key_pressed(event):
-            current_position['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
+            
             if (event.char == 'a'):
                 hold.turning  = True
                 sendToArduino(4, 0)
@@ -359,6 +359,14 @@ while 1:
                 sendToArduino(5, 0)
             else:
                 window.quit()
+            current_position['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
+            
+        def task():
+            current_position['text'] = str(round(hold.angleZ)) + "  "+ str(round(hold.posX, 2)) + "  " + str(round(hold.posY, 2))
+            window.after(50, task)  # reschedule event in 2 seconds
+
+           
+        window.after(50, task)
         window.bind('<Key>', key_pressed)
 
 #         window.bind('d', sendToArduino(4, 1))
@@ -378,8 +386,17 @@ while 1:
             hoop_num['image'] = num
             window.update()
         else:
-            current_action['text'] = "No Number Found!"
+            num = PhotoImage(file = 'hoopPic_og.png')
+            num = num.subsample(5)
+            hoop_num['image'] = num
+            window.update()
         
+        xL = (height * (0.05 + 0.045 * 5) - 25)
+
+        yL = height * (.95 - .045 * 5) - 33
+
+        bot_img.place(width = 50, height = 67, x = xL , y = yL) 
+        window.update()
         print("Picture Taken, Getting number...")
         # a  = numverification()
         # if a == nextHoop:
@@ -394,7 +411,12 @@ while 1:
         curr = nextHoop
         nextHoop = nextHoop % 6
         nextHoop += 1
-        
+        if (curr == 1, 2):
+            angle1 = 180
+            angle2 = 0
+        else:
+            angle1 = 0
+            angle2 = 180
         hold.turning = False
         sendToArduino(2, 1)
         time.sleep(5)
@@ -402,7 +424,7 @@ while 1:
         hoop_arr[nextHoop - 1]['background'] = "yellow"
         hold.turning = True
         time.sleep(1)
-        turnTo(180)
+        turnTo(angle1)
         time.sleep(1)
         hold.turning = False
         sendToArduino(0, 1.5)
@@ -411,9 +433,11 @@ while 1:
         hold.turning = True
         turnTo(90)
         time.sleep(1)
+        hold.turning = False
         sendToArduino(0, 2.5)
         time.sleep(5)
-        turnTo(0)
+        hold.turning = True
+        turnTo(angle2)
         time.sleep(1)
         
         
